@@ -7,6 +7,7 @@ import { INSTRUMENTS } from './office/registry';
 import { createTestRun, submit, settlePending, reconcileRun } from './paper';
 import { reconcile } from './trading/engine';
 import type { Proposal } from './trading/types';
+import { scheduleOrderRefresh, claimQueuedRefresh } from './trading/refresh';
 
 // Explicitly synthetic test prices. These never enter provider scope or an official experiment.
 export const runScenario = mutation({
@@ -335,5 +336,46 @@ export const recoveryJobStatus = query({
     const job = await ctx.db.system.get(args.jobId);
     if (!job) throw new Error('Recovery job unavailable');
     return { state: job.state.kind, name: job.name, scheduledTime: job.scheduledTime };
+  },
+});
+
+export const verifyRefreshQueue = mutation({
+  args: { ownerToken: v.string() },
+  handler: async (ctx, args) => {
+    assertOwner(args.ownerToken);
+    const now = Date.now();
+    const runId = await createTestRun(
+      ctx,
+      'FIXTURE',
+      'QUOTE QUEUE FIXTURE — NO PROVIDER CALLS',
+      now,
+    );
+    const instrumentId = `queue-fixture:${runId}`;
+    const record = () =>
+      ctx.db
+        .query('marketRefreshJobs')
+        .withIndex('instrument', (q) => q.eq('instrumentId', instrumentId))
+        .unique();
+    await scheduleOrderRefresh(ctx, instrumentId, now + 65_000);
+    const first = (await record())!;
+    await scheduleOrderRefresh(ctx, instrumentId, now + 70_000);
+    const coalesced = (await record())!;
+    if (coalesced.generation !== first.generation || coalesced.dueAt !== first.dueAt)
+      throw new Error('Refresh did not coalesce');
+    await scheduleOrderRefresh(ctx, instrumentId, now + 60_000);
+    const earlier = (await record())!;
+    if (earlier.generation !== first.generation + 1)
+      throw new Error('Refresh generation did not advance');
+    if (await claimQueuedRefresh(ctx, instrumentId, first.generation, now + 70_000))
+      throw new Error('Stale generation claimed work');
+    if ((await record())!.dueAt !== earlier.dueAt)
+      throw new Error('Stale generation consumed current work');
+    if (await claimQueuedRefresh(ctx, instrumentId, earlier.generation, now + 59_000))
+      throw new Error('Early generation claimed work');
+    if (await claimQueuedRefresh(ctx, instrumentId, earlier.generation, now + 60_000))
+      throw new Error('Fixture scheduled provider work');
+    if ((await record())!.dueAt !== 0) throw new Error('Refresh claim did not clear slot');
+    await ctx.db.patch(runId, { status: 'COMPLETED' });
+    return { coalesced: true, staleGenerationIgnored: true, fixtureProviderCalls: 0 };
   },
 });

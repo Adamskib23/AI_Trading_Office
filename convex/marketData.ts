@@ -18,6 +18,12 @@ import {
 } from './trading/providers';
 import type { Quote } from './trading/types';
 import { midnightInstruments, midnightWindow } from './trading/polling';
+import {
+  pendingRefreshNeeded,
+  scheduleOrderRefresh,
+  ORDER_REFRESH_DELAY,
+  claimQueuedRefresh,
+} from './trading/refresh';
 import { validQuote, utcDay } from './trading/engine';
 import { quoteFields, candleFields } from './trading/schema';
 import { settlePending } from './paper';
@@ -219,6 +225,34 @@ export const refresh = action({
   handler: async (ctx, args): Promise<{ status: string }> => {
     assertOwner(args.ownerToken);
     return ctx.runAction(internal.marketData.poll, { instrumentId: args.instrumentId });
+  },
+});
+
+export const claimOrderRefresh = internalMutation({
+  args: { instrumentId: v.string(), generation: v.number() },
+  handler: (ctx, args) => claimQueuedRefresh(ctx, args.instrumentId, args.generation, Date.now()),
+});
+
+export const continueOrderRefresh = internalMutation({
+  args: { instrumentId: v.string() },
+  handler: async (ctx, args) => {
+    const at = Date.now() + ORDER_REFRESH_DELAY;
+    if (await pendingRefreshNeeded(ctx.db, args.instrumentId, at))
+      await scheduleOrderRefresh(ctx, args.instrumentId, at);
+  },
+});
+
+export const pollQueued = internalAction({
+  args: { instrumentId: v.string(), generation: v.number() },
+  handler: async (ctx, args): Promise<void> => {
+    if (!(await ctx.runMutation(internal.marketData.claimOrderRefresh, args))) return;
+    try {
+      await ctx.runAction(internal.marketData.poll, { instrumentId: args.instrumentId });
+    } finally {
+      await ctx.runMutation(internal.marketData.continueOrderRefresh, {
+        instrumentId: args.instrumentId,
+      });
+    }
   },
 });
 export const review = mutation({

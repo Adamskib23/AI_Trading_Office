@@ -41,6 +41,10 @@ if (process.argv.includes('--scheduled-status')) {
   process.exit(0);
 }
 const result = await client.mutation(api.paperFixtures.runRecoveryScenario, { ownerToken });
+const queue = await client.mutation(api.paperFixtures.verifyRefreshQueue, { ownerToken });
+assert.equal(queue.coalesced, true);
+assert.equal(queue.staleGenerationIgnored, true);
+assert.equal(queue.fixtureProviderCalls, 0);
 assert.equal(result.source, 'FIXTURE');
 assert.equal(result.expiryPassed, true);
 assert.equal(result.discrepancyDetected, true);

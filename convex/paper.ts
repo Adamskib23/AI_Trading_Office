@@ -24,6 +24,7 @@ import {
 import type { Context, Proposal } from './trading/types';
 import { initialBenchmark, advanceBenchmark } from './trading/benchmark';
 import { rolloverDay } from './trading/rollover';
+import { scheduleOrderRefresh, ORDER_REFRESH_DELAY } from './trading/refresh';
 
 export async function tradingContext(
   db: DatabaseReader,
@@ -180,9 +181,7 @@ export async function submit(
     requestHash,
   });
   if (decision.accepted && run.mode === 'PROVIDER')
-    await ctx.scheduler.runAfter(65_000, internal.marketData.poll, {
-      instrumentId: proposal.instrumentId,
-    });
+    await scheduleOrderRefresh(ctx, proposal.instrumentId, now + ORDER_REFRESH_DELAY);
   return orderId;
 }
 export const propose = mutation({

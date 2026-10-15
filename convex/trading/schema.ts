@@ -82,6 +82,11 @@ export const postingFields = {
   delta: v.string(),
 };
 export const tradingTables = {
+  marketRefreshJobs: defineTable({
+    instrumentId: v.string(),
+    dueAt: v.number(),
+    generation: v.number(),
+  }).index('instrument', ['instrumentId']),
   paperIncidents: defineTable({
     runId: v.id('paperRuns'),
     agentId: v.string(),
@@ -140,7 +145,8 @@ export const tradingTables = {
     fillQuoteId: v.optional(v.string()),
   })
     .index('idempotency', ['runId', 'agentId', 'cycleId', 'proposalIndex'])
-    .index('pending', ['runId', 'status']),
+    .index('pending', ['runId', 'status'])
+    .index('instrumentStatus', ['instrumentId', 'status']),
   paperFills: defineTable({
     runId: v.id('paperRuns'),
     orderId: v.id('paperOrders'),

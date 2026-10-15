@@ -52,6 +52,8 @@ A corresponding Kraken enquiry can describe public Time/SystemStatus/Trades/OHLC
 
 The actual backend/supervisor restart has now been exercised with a paused provider TEST: all five funded accounts, balances, empty orders/fills and reconciliation survived. A recovery job scheduled before restart completed afterward. The real midnight check is a separate bounded provider TEST. After actual-feed acceptance passes, `node scripts/verify-day-boundary.mjs --start` resumes that verified TEST, refreshes open held assets during 23:58–00:05 UTC, and schedules a check/automatic pause at 00:06 UTC. `node scripts/verify-day-boundary.mjs --status` reads the persisted result. Pending is not a pass. Leave the Windows computer awake and local Convex running; the browser is unnecessary. No new proposals, models or research are scheduled by this check.
 
+Latest result: the actual-feed acceptance path has passed across all five categories without manual refreshes, and the filled portfolios, orders/fills/source clocks and benchmark acquisitions survived an additional backend restart exactly. The verified TEST's real midnight check is **started**, with automatic stop/check at **01:06 London time on 16 October 2026**. Only that future rollover outcome remains pending for the representative Phase 2 acceptance path. See [PHASE_2_ACCEPTANCE.md](PHASE_2_ACCEPTANCE.md) for persisted run references, the first run's intervention and the shared-refresh correction.
+
 Synthetic recovery checks are available now:
 
 ```powershell

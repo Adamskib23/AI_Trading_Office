@@ -52,6 +52,7 @@ import type * as trading_engine from "../trading/engine.js";
 import type * as trading_math from "../trading/math.js";
 import type * as trading_polling from "../trading/polling.js";
 import type * as trading_providers from "../trading/providers.js";
+import type * as trading_refresh from "../trading/refresh.js";
 import type * as trading_rollover from "../trading/rollover.js";
 import type * as trading_testFixtures from "../trading/testFixtures.js";
 import type * as trading_types from "../trading/types.js";
@@ -120,6 +121,7 @@ declare const fullApi: ApiFromModules<{
   "trading/math": typeof trading_math;
   "trading/polling": typeof trading_polling;
   "trading/providers": typeof trading_providers;
+  "trading/refresh": typeof trading_refresh;
   "trading/rollover": typeof trading_rollover;
   "trading/testFixtures": typeof trading_testFixtures;
   "trading/types": typeof trading_types;

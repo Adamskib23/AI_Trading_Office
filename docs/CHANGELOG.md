@@ -1,5 +1,12 @@
 # Project changelog
 
+## 15 October 2026 — actual-feed acceptance and shared bounded refresh
+
+- Passed automatic actual-feed stock, broad ETF, commodity ETF, FX cash conversion and crypto paper fills with five reconciled accounts and four benchmark sleeves.
+- Fixed the observed GLD follow-up gap using shared per-instrument refresh slots, generation-based coalescing and expiry/deadline-bounded retries. First-run manual refresh is disclosed; repeat acceptance needed no intervention.
+- Verified filled portfolios, immutable fills/source clocks and benchmark acquisitions across an actual backend restart.
+- Started bounded real-midnight observation with automatic check/stop at 16 October 00:06 UTC / 01:06 London. Result remains pending; no Phase 3/official start.
+
 ## 15 October 2026 — source evidence and bounded midnight verification
 
 - Scoped owner-reported Kraken internal-use review, FX session/source evidence, bounded representative-securities corporate-action review and actual local backend restart evidence.

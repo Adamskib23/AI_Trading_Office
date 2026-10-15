@@ -1,5 +1,17 @@
 # Development logbook
 
+## 15 October 2026 — automatic actual-feed acceptance passed; overnight check running
+
+After the shared refresh fix, TEST nx71v1c17d7t734xq0a622y44d8gbtxz filled all five required categories without manual feed refreshes, reconciled all accounts, and acquired all four benchmark sleeves. The runner checked original source/retrieval clocks after acceptance/start and automatically paused the run. A second actual backend/supervisor restart preserved its filled portfolios, orders/fills/source metadata and benchmark state exactly.
+
+Started the bounded real UTC rollover observation on that verified TEST. Automatic check/stop: 2026-10-16T00:06:00Z (01:06 BST). No new proposals, models or research are scheduled. Midnight result is pending, not passed. Machine/local backend must remain awake; browser is unnecessary. Terminal prices remain off. Current checks: 14 suites / 114 unit tests, build, targeted lint, persisted recovery/queue/admission tests and browser checks pass. Phase 3 remains disabled.
+
+## 15 October 2026 — first actual-feed fills and a refresh scheduling gap
+
+US-open AAPL/SPY/GLD quotes at 13:30 UTC were about six seconds old and passed source review. TEST nx77jt2xd94n6xp6basnbkpw7h8ga6xf then produced all five required actual-feed paper fills, five reconciled portfolios and all four benchmark acquisitions. GLD initially returned a source minute before order acceptance and was correctly held; a manual data refresh supplied a later quote. This intervention is recorded explicitly and the run is not labelled unattended.
+
+Fixed the underlying single-follow-up assumption with one shared durable refresh per instrument, generation-based coalescing and TTL/deadline-bounded repeats. Unit tests cover expired/paused/completed/fixture isolation; persisted fixture checks cover shared slots, obsolete/early claims and zero provider work for fixture IDs. Acceptance is being rerun without manual provider requests. No risk or freshness thresholds were weakened.
+
 ## 15 October 2026 — Kraken review and remaining Phase 2 acceptance
 
 Owner confirmed their Kraken terms review permits current internal use without redistribution. Recorded this scope for three crypto instruments, preserving other settings and leaving terminal prices off. Independently reviewed Twelve Data Forex API v2, weekday source freshness, NYSE sessions and short AAPL/SPY/GLD corporate-action evidence; see PHASE_2_ACCEPTANCE.md. These are engineering checks, not agent research integration.
