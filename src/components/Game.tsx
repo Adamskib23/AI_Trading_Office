@@ -10,6 +10,7 @@ import { useWorldHeartbeat } from '../hooks/useWorldHeartbeat.ts';
 import { useHistoricalTime } from '../hooks/useHistoricalTime.ts';
 import { DebugTimeManager } from './DebugTimeManager.tsx';
 import { GameId } from '../../convex/aiTown/ids.ts';
+import MarketTerminal from './MarketTerminal';
 import { useServerGame } from '../hooks/serverGame.ts';
 
 export const SHOW_DEBUG_UI = !!import.meta.env.VITE_SHOW_DEBUG_UI;
@@ -22,6 +23,8 @@ export default function Game({
   officeProfiles: Doc<'employeeProfiles'>[];
 }) {
   const convex = useConvex();
+  const [terminalOpen, setTerminalOpen] = useState(false);
+  const [terminalClock, setTerminalClock] = useState(Date.now());
   const [selectedElement, setSelectedElement] = useState<{
     kind: 'player';
     id: GameId<'players'>;
@@ -53,6 +56,15 @@ export default function Game({
         {/* Game area */}
         <div className="office-canvas" ref={gameWrapperRef}>
           <div className="office-canvas-caption">TRADING FLOOR · DRAG TO PAN / SCROLL TO ZOOM</div>
+          <button
+            className="terminal-shortcut"
+            onClick={() => {
+              setTerminalClock(Date.now());
+              setTerminalOpen(true);
+            }}
+          >
+            Open market terminal
+          </button>
           <div className="absolute inset-0">
             <div className="container">
               <Stage width={width} height={height} options={{ backgroundColor: 0x101e28 }}>
@@ -68,6 +80,10 @@ https://github.com/michalochman/react-pixi-fiber/issues/145#issuecomment-5315492
                     historicalTime={historicalTime}
                     setSelectedElement={setSelectedElement}
                     ownerToken={ownerToken}
+                    onOpenTerminal={() => {
+                      setTerminalClock(Date.now());
+                      setTerminalOpen(true);
+                    }}
                     selectedEmployeeId={selectedProfile?.employeeId}
                   />
                 </ConvexProvider>
@@ -122,6 +138,9 @@ https://github.com/michalochman/react-pixi-fiber/issues/145#issuecomment-5315492
           )}
         </div>
       </div>
+      {terminalOpen && (
+        <MarketTerminal clock={terminalClock} onClose={() => setTerminalOpen(false)} />
+      )}
     </>
   );
 }

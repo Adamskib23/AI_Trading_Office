@@ -14,6 +14,7 @@ import { DebugPath } from './DebugPath.tsx';
 import { PositionIndicator } from './PositionIndicator.tsx';
 import { SHOW_DEBUG_UI } from './Game.tsx';
 import { ServerGame } from '../hooks/serverGame.ts';
+import OfficeTerminal from './OfficeTerminal';
 
 export const PixiGame = (props: {
   worldId: Id<'worlds'>;
@@ -25,6 +26,7 @@ export const PixiGame = (props: {
   setSelectedElement: SelectElement;
   ownerToken: string;
   selectedEmployeeId?: string;
+  onOpenTerminal: () => void;
 }) => {
   // PIXI setup.
   const pixiApp = useApp();
@@ -116,6 +118,7 @@ export const PixiGame = (props: {
         onpointerup={onMapPointerUp}
         onpointerdown={onMapPointerDown}
       />
+      <OfficeTerminal onOpen={props.onOpenTerminal} />
       {EMPLOYEES.map((employee) => (
         <Text
           key={employee.id}

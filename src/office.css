@@ -439,3 +439,18 @@
     grid-template-columns: 1fr 1fr;
   }
 }
+
+.terminal-shortcut { position: absolute; z-index: 2; right: 14px; top: 44px; background: #101e28; color: #ffba58; border: 1px solid #64828a; padding: 8px 12px; }
+.market-terminal { width: min(1200px, 94vw); max-height: 88vh; padding: 24px; background: #071017; color: #b5c8cc; border: 1px solid #5c727a; font: 12px/1.6 monospace; }
+.market-terminal::backdrop { background: #02070cbb; }
+.market-terminal header { display: flex; justify-content: space-between; gap: 16px; align-items: center; }
+.market-terminal header span, .market-terminal h2 { color: #ffba58; }
+.market-terminal h2 { font-size: 24px; margin: 4px 0 12px; }
+.market-terminal button { border: 1px solid #64828a; padding: 8px 12px; color: #fff; }
+.terminal-table { overflow: auto; margin: 18px 0; max-height: 52vh; }
+.market-terminal table { border-collapse: collapse; width: 100%; white-space: nowrap; }
+.market-terminal th, .market-terminal td { padding: 10px 12px; text-align: left; border-bottom: 1px solid #20323e; }
+.market-terminal thead { color: #ffba58; }
+.market-terminal .terminal-price, .market-terminal [data-fresh='true'] { color: #54ddb2; }
+.market-terminal footer { border-top: 1px solid #64828a; padding-top: 12px; }
+@media (prefers-reduced-motion: reduce) { .market-terminal * { animation: none; } }
