@@ -1,5 +1,14 @@
 # Project changelog
 
+## 15 October 2026 — terminal and Phase 2 validation hardening (pre-trial)
+
+- Clickable animated office market screen and accessible read-only terminal for all 14 symbols, with source clocks and stale/missing/mode labels. No new framework or implicit provider polling.
+- Diagnosed local UTC clock drift; owner synchronization restored FX and crypto ingestion without weakening timestamp checks. All 14 symbols returned quote/candle evidence; US-open checks remain pending.
+- Numeric-only feed-failure diagnostics, preserving specific validation codes and avoiding raw upstream text.
+- Periodic provider ledger reconciliation, persisted incidents, pending-order cancellation on mismatch, exact expiry boundary and validated UTC rollover witnesses.
+- Added controlled-clock/recovery/benchmark tests, persisted fault-injection fixture, scheduled fixture verification and guarded provider-acceptance runbook/runner.
+- Actual-feed fill acceptance, rights/session/corporate-action reviews and actual-provider restart/day-rollover remain incomplete. No Phase 3 activity, model calls, data upgrades, public publication or official run.
+
 ## 15 October 2026 — local secrets-file workflow
 
 - Added ignored `.secrets.env` and backup patterns, with a blank tracked example.

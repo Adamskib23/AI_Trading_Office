@@ -6,6 +6,8 @@ Current milestone: **Phase 2 paper infrastructure; real-provider validation pend
 
 Read [Phase 1 setup and decisions](docs/PHASE_1.md), [approved architecture](docs/ARCHITECTURE.md), [implementation plan](docs/IMPLEMENTATION_PLAN.md), [provider decisions](docs/PROVIDER_DECISIONS.md) and [Phase 0 audit](docs/PHASE_0_AUDIT.md). Local CEO controls use a generated server-side token; follow Phase 1 instructions. Do not use upstream `npm run dev`/`init` for office setup.
 
+The clickable office market terminal shows the shared provider feed store, with explicit stale/missing labels. All 14 symbols have retrieval evidence; execution and publication rights remain gated. Run `node scripts/verify-provider-acceptance.mjs` for a read-only readiness report. See [provider review and recovery runbook](docs/PROVIDER_REVIEW.md) for the resolved Windows clock incident, remaining evidence and prepared acceptance commands. No automatic price polling begins just by opening the terminal.
+
 The upstream README below is retained for provenance and historical reference; its installation and public-demo instructions describe the original AI Town, not the current office milestone.
 
 ---

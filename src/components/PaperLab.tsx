@@ -158,6 +158,12 @@ export default function PaperLab({ ownerToken, clock }: { ownerToken: string; cl
               {test.benchmark &&
                 ` · ${test.benchmark.legs.filter((l) => l.filledAt).length}/4 reference sleeves acquired`}
             </p>
+            {test.incidents?.map((incident) => (
+              <p key={incident._id} role="status" className="phase-lock">
+                {incident.agentId}: {incident.code} · account paused ·{' '}
+                {new Date(incident.at).toLocaleString()}
+              </p>
+            ))}
             {test.mode === 'PROVIDER' && (
               <button
                 disabled={!ownerToken || busy || test.status === 'COMPLETED'}

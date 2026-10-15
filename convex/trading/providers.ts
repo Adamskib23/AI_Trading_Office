@@ -1,6 +1,14 @@
 import { D, decimal } from './math';
 import type { Candle, MarketDataProvider, Quote } from './types';
 import type { Instrument } from '../office/registry';
+export class ProviderClockError extends Error {
+  constructor(
+    readonly providerTimestamp: number,
+    readonly checkedAt: number,
+  ) {
+    super('PROVIDER_CLOCK_SKEW');
+  }
+}
 const object = (value: unknown): Record<string, unknown> => {
   if (!value || typeof value !== 'object' || Array.isArray(value))
     throw new Error('PROVIDER_INVALID_RESPONSE');
@@ -194,8 +202,10 @@ export class KrakenProvider implements MarketDataProvider {
   async health() {
     const data = await request(new URL('https://api.kraken.com/0/public/SystemStatus'));
     const time = await request(new URL('https://api.kraken.com/0/public/Time'));
-    if (Math.abs(number(object(time.result).unixtime) * 1000 - Date.now()) > 5000)
-      throw new Error('PROVIDER_CLOCK_SKEW');
+    const providerTimestamp = number(object(time.result).unixtime) * 1000;
+    const checkedAt = Date.now();
+    if (Math.abs(providerTimestamp - checkedAt) > 5000)
+      throw new ProviderClockError(providerTimestamp, checkedAt);
     return object(data.result).status === 'online';
   }
   async getQuote(instrument: Instrument) {

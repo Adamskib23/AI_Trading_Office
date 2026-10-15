@@ -1,10 +1,13 @@
 import { INSTRUMENTS } from '../office/registry';
+import { jest } from '@jest/globals';
 import {
   parseKrakenCandles,
   parseKrakenQuote,
   parseTwelveCandles,
   parseTwelveQuote,
   validateCandles,
+  KrakenProvider,
+  ProviderClockError,
 } from './providers';
 const now = Date.parse('2026-10-15T14:00:00Z');
 const btc = INSTRUMENTS.find((i) => i.symbol === 'BTC/USD')!,
@@ -24,6 +27,43 @@ test('Twelve Data quote uses last_quote_at, never the daily candle opening', () 
   expect(() =>
     parseTwelveQuote({ symbol: 'MSFT', last_quote_at: 1, close: '100' }, aapl, now),
   ).toThrow('SYMBOL');
+});
+
+test('Kraken refuses an hour-ahead server clock and preserves only numeric diagnostics', async () => {
+  const originalFetch = globalThis.fetch;
+  const clock = jest.spyOn(Date, 'now').mockReturnValue(now);
+  globalThis.fetch = jest
+    .fn<typeof fetch>()
+    .mockResolvedValueOnce(new Response(JSON.stringify({ result: { status: 'online' } })))
+    .mockResolvedValueOnce(
+      new Response(JSON.stringify({ result: { unixtime: now / 1000 + 3600 } })),
+    );
+  try {
+    await expect(new KrakenProvider().health()).rejects.toMatchObject({
+      message: 'PROVIDER_CLOCK_SKEW',
+      providerTimestamp: now + 3600_000,
+      checkedAt: now,
+    });
+    expect(new ProviderClockError(now + 3600_000, now)).toBeInstanceOf(Error);
+  } finally {
+    globalThis.fetch = originalFetch;
+    clock.mockRestore();
+  }
+});
+
+test('Kraken accepts a synchronized clock but still refuses maintenance status', async () => {
+  const originalFetch = globalThis.fetch;
+  const clock = jest.spyOn(Date, 'now').mockReturnValue(now);
+  globalThis.fetch = jest
+    .fn<typeof fetch>()
+    .mockResolvedValueOnce(new Response(JSON.stringify({ result: { status: 'maintenance' } })))
+    .mockResolvedValueOnce(new Response(JSON.stringify({ result: { unixtime: now / 1000 } })));
+  try {
+    expect(await new KrakenProvider().health()).toBe(false);
+  } finally {
+    globalThis.fetch = originalFetch;
+    clock.mockRestore();
+  }
 });
 test('Kraken timestamp comes from the actual trade, not the response clock', () => {
   const q = parseKrakenQuote(

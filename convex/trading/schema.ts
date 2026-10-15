@@ -82,6 +82,12 @@ export const postingFields = {
   delta: v.string(),
 };
 export const tradingTables = {
+  paperIncidents: defineTable({
+    runId: v.id('paperRuns'),
+    agentId: v.string(),
+    code: v.string(),
+    at: v.number(),
+  }).index('run', ['runId']),
   paperBenchmarks: defineTable({
     runId: v.id('paperRuns'),
     startedAt: v.number(),
@@ -182,6 +188,7 @@ export const tradingTables = {
     at: v.number(),
     status: v.string(),
     message: v.string(),
+    diagnostic: v.optional(v.string()),
   }).index('instrument', ['instrumentId']),
   providerQuota: defineTable({
     provider: v.string(),

@@ -51,6 +51,7 @@ import type * as trading_benchmark from "../trading/benchmark.js";
 import type * as trading_engine from "../trading/engine.js";
 import type * as trading_math from "../trading/math.js";
 import type * as trading_providers from "../trading/providers.js";
+import type * as trading_rollover from "../trading/rollover.js";
 import type * as trading_testFixtures from "../trading/testFixtures.js";
 import type * as trading_types from "../trading/types.js";
 import type * as util_FastIntegerCompression from "../util/FastIntegerCompression.js";
@@ -117,6 +118,7 @@ declare const fullApi: ApiFromModules<{
   "trading/engine": typeof trading_engine;
   "trading/math": typeof trading_math;
   "trading/providers": typeof trading_providers;
+  "trading/rollover": typeof trading_rollover;
   "trading/testFixtures": typeof trading_testFixtures;
   "trading/types": typeof trading_types;
   "util/FastIntegerCompression": typeof util_FastIntegerCompression;

@@ -2,7 +2,7 @@
 
 Reviewed 14 October 2026. This is a feasibility audit, not an integration or completed entitlement certification. No subscriptions purchased; no account secrets requested. Official start remains gated on actual per-symbol quotes/candles, timestamps, sessions and data rights.
 
-**Phase 2 update, 15 October:** read-only Twelve Data/Kraken adapters and quota gates are implemented. Twelve Data credentials are pending the owner's free account. Public Kraken server/trade timestamps were approximately one hour ahead of independently checked UTC; rejected as PROVIDER_CLOCK_SKEW, with no time correction or financial fills. Pair metadata verification from Phase 0 does not validate the current feed. All real-provider acceptance and publication-rights gates remain open. See [PHASE_2.md](PHASE_2.md) for actual evidence, setup and requirements.
+**Latest Phase 2 update, 15 October:** the free Twelve Data key is connected and all 14 starter symbols have actual quote and closed-candle retrieval evidence. The initial FX/crypto failures were traced to local UTC being one hour behind external clocks; the owner synchronized Windows, after which FX and all three Kraken pairs passed. Source timestamps were never adjusted. US symbols currently have previous-session closes; open-session freshness, rights, sessions, corporate actions and actual-feed fill acceptance remain open. See [PHASE_2.md](PHASE_2.md) and [provider review/evidence runbook](PROVIDER_REVIEW.md). The original Phase 0 matrix below is historical; its Pending entries are superseded for retrieval only by this update, not for execution or publication rights.
 
 ## Provisional selection
 
@@ -57,12 +57,12 @@ Next-eligible-quote execution requires additional post-proposal data. Maximum 30
 
 ## Outstanding gates and owner actions
 
-1. Choose/register a free Twelve Data account if this route is preferred; credentials become necessary only for read-only entitlement probes. Enter secrets locally/server-side, never in chat. No account currently verified.
+1. Completed for connectivity: free Twelve Data account/key connected through the ignored local secrets file and server-side environment. This does not certify execution/display/publication rights.
 2. Verify each proposed security/ETF/FX instrument using timestamped actual quote and completed candle responses, during an eligible open session. Capture source venue/mode, entitlement, endpoint credit weight and errors. No success inferred from catalogue names.
 3. Confirm internal non-display, private UI display, storage/export and YouTube/public screenshot rights; ask provider for terms if ambiguous. Paid data costs require separate explicit approval.
 4. If securities coverage fails, assess Alpaca account eligibility/IEX sampling freshness and licence; do not assume a fresh IEX quote always exists for less active ETF symbols.
 5. If FX coverage fails, verify OANDA practice eligibility and pricing access; no real account/funding/order credentials.
-6. Complete Kraken timestamped quote/closed candle probes and rate/licence review, with status/maintenance handling.
+6. Completed Kraken quote/closed-candle probes for BTC/ETH/SOL; rate/licence and documentary-publication review remain open, with existing health/maintenance rejection intact.
 7. Record all source versions and test session boundaries/DST/corporate actions before finalising the symbol universe. If a required class lacks adequate access, keep official preflight blocked and present scoped alternatives.
 
-No market adapters or research integration were implemented in Phase 0. Phase 2 now has read-only adapters; real credentials/source validation remain pending as stated above. Model availability and research API wiring remain deferred to Phases 3 and 4.
+No market adapters or research integration were implemented in Phase 0. Phase 2 now has connected read-only adapters with all-symbol retrieval evidence; remaining execution/source and rights gates are stated above. Model availability and research API wiring remain deferred to Phases 3 and 4.

@@ -3,7 +3,13 @@ import { action, internalAction, internalMutation, mutation, query } from './_ge
 import { internal } from './_generated/api';
 import { assertOwner } from './office/access';
 import { INSTRUMENTS } from './office/registry';
-import { KrakenProvider, TwelveProvider, validateCandles } from './trading/providers';
+import {
+  KrakenProvider,
+  TwelveProvider,
+  ProviderClockError,
+  validateCandles,
+} from './trading/providers';
+import type { Quote } from './trading/types';
 import { validQuote, utcDay } from './trading/engine';
 import { quoteFields, candleFields } from './trading/schema';
 import { settlePending } from './paper';
@@ -42,7 +48,12 @@ export const reserve = internalMutation({
   },
 });
 export const failure = internalMutation({
-  args: { instrumentId: v.string(), provider: v.string(), message: v.string() },
+  args: {
+    instrumentId: v.string(),
+    provider: v.string(),
+    message: v.string(),
+    diagnostic: v.optional(v.string()),
+  },
   handler: async (ctx, args) => {
     await ctx.db.insert('feedEvents', { ...args, at: Date.now(), status: 'ERROR' });
     const capability = await ctx.db
@@ -154,6 +165,7 @@ export const poll = internalAction({
     )
       return { status: 'QUOTA_OR_COOLDOWN' };
     let stage = 'health';
+    let quote: Quote | undefined;
     try {
       const provider =
         name === 'kraken'
@@ -161,9 +173,13 @@ export const poll = internalAction({
           : new TwelveProvider(process.env.TWELVE_DATA_API_KEY!);
       if (!(await provider.health())) throw new Error('PROVIDER_UNHEALTHY');
       stage = 'quote';
-      const quote = await provider.getQuote(instrument);
+      quote = await provider.getQuote(instrument);
+      // Validate here as well as transactionally, preserving specific errors and
+      // avoiding a candle request when the source clock already fails validation.
+      validQuote(quote, Date.now());
       stage = 'candles';
       const candles = await provider.getClosedCandles(instrument, Date.now());
+      validateCandles(candles, Date.now());
       stage = 'ingest';
       await ctx.runMutation(internal.marketData.ingest, { quote, candles });
       return { status: 'RECEIVED' };
@@ -172,15 +188,19 @@ export const poll = internalAction({
         error instanceof Error && /^[A-Z_0-9]+$/.test(error.message)
           ? error.message
           : 'PROVIDER_INVALID_RESPONSE';
-      // Public Kraken requests have no credentials; retain a bounded diagnostic for adapter failures.
-      if (name === 'kraken' && error instanceof Error)
-        console.warn(
-          `Kraken ${stage}: ${error.message.replace(/https?:\/\/\S+/g, '[public endpoint]').slice(0, 500)}`,
-        );
+      // Construct diagnostics exclusively from trusted stage names and numeric
+      // clocks. Never retain arbitrary upstream error text or credential URLs.
+      const diagnostic =
+        error instanceof ProviderClockError
+          ? `stage=${stage}; providerMs=${error.providerTimestamp}; checkedMs=${error.checkedAt}; skewMs=${error.providerTimestamp - error.checkedAt}`
+          : quote
+            ? `stage=${stage}; sourceMs=${quote.sourceTimestamp}; retrievedMs=${quote.retrievedAt}; checkedMs=${Date.now()}`
+            : `stage=${stage}`;
       await ctx.runMutation(internal.marketData.failure, {
         instrumentId: instrument.id,
         provider: name,
         message,
+        diagnostic,
       });
       return { status: message };
     }

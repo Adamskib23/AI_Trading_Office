@@ -1,5 +1,13 @@
 # Development logbook
 
+## 15 October 2026 — clock repaired; all symbols retrieved; Phase 2 still active
+
+Owner synchronized Windows after three external clocks (Kraken, Microsoft and Cloudflare) agreed approximately one hour ahead of local UTC and Windows Time was found stopped. The earlier independent-clock check followed the same local clock and could not establish a Kraken fault. After synchronization, observed differences were under one second. EUR/USD and BTC/ETH/SOL immediately passed timestamp and closed-candle checks. All eight US symbols plus all three FX pairs and all three crypto pairs now have retrieval evidence. US quotes are previous closes, not open-session execution proof. No source timestamp was corrected in code.
+
+Added secret-safe numeric feed diagnostics, automatic minute-by-minute provider-account reconciliation, exact-deadline expiry, and stricter witnessed UTC rollover checks. All 106 unit tests pass. Persisted recovery fixture `nx7adevx6tvz1t617p9d1qnq018gbty1` deliberately introduced a one-cent isolated discrepancy and confirmed pause/cancellation/one incident/no fills. The five-class fixture `nx705j3g12c4atsjm1kx4n9he58gbqr7` produced five reconciled synthetic fills. A separately scheduled fixture completed after the initiating process exited; this was not a backend-process restart or unattended real-provider midnight test.
+
+The owner-requested office terminal is implemented, showing actual stored prices/times/statuses with stale/missing labels and no extra provider polling. Prepared a guarded actual-provider acceptance runner and a provider-rights enquiry; the enquiry was not sent. Its blocked path was exercised without requests/orders/new reviews. Rights/display/publication, FX sessions, securities corporate actions, US-open source quality and actual-feed fills/benchmarks remain open. No model calls, paid upgrades, live orders or official experiment. See PROVIDER_REVIEW.md and PHASE_2.md.
+
 ## 15 October 2026 — Phase 2 approved, provider gates remain open
 
 Implemented decimal multicurrency TEST accounts, double-entry postings/reconciliation, deterministic risk and next-quote paper fills, scoped fixtures, benchmarks, read-only adapters, quota reservations/scheduling and Paper lab. Scripted five-class fills and concurrent retries pass. Provider incident: Kraken public Time/trades reported approximately +3,600 seconds vs Windows UTC and independent clock; rejected, not corrected. Owner is creating a free Twelve Data account; key/entitlements still pending. No model calls, live broker APIs, paid subscriptions or official run. See PHASE_2.md for evidence and remaining gates.

@@ -21,9 +21,9 @@ import {
   POLICY_VERSION,
   utcDay,
 } from './trading/engine';
-import { decimal } from './trading/math';
 import type { Context, Proposal } from './trading/types';
 import { initialBenchmark, advanceBenchmark } from './trading/benchmark';
+import { rolloverDay } from './trading/rollover';
 
 export async function tradingContext(
   db: DatabaseReader,
@@ -207,7 +207,7 @@ export async function settlePending(
     .withIndex('pending', (q) => q.eq('runId', run._id).eq('status', 'ACCEPTED'))
     .take(100);
   for (const order of orders) {
-    if (order.expiresAt < now || run.status !== 'ACTIVE') {
+    if (order.expiresAt <= now || run.status !== 'ACTIVE') {
       await ctx.db.patch(order._id, {
         status: 'REJECTED',
         reason: run.status !== 'ACTIVE' ? 'PAUSED' : 'ORDER_EXPIRED',
@@ -296,9 +296,56 @@ export const sweep = internalMutation({
       .query('paperRuns')
       .filter((q) => q.eq(q.field('mode'), 'PROVIDER'))
       .collect();
-    for (const run of runs) await settlePending(ctx, run, Date.now());
+    for (const run of runs) {
+      await reconcileRun(ctx, run, Date.now());
+      await settlePending(ctx, run, Date.now());
+    }
   },
 });
+
+export async function reconcileRun(ctx: MutationCtx, run: Doc<'paperRuns'>, now: number) {
+  for (const account of await ctx.db
+    .query('paperAccounts')
+    .withIndex('runAgent', (q) => q.eq('runId', run._id))
+    .collect()) {
+    const ledger = await ctx.db
+      .query('paperLedger')
+      .withIndex('runAgent', (q) => q.eq('runId', run._id).eq('agentId', account.agentId))
+      .collect();
+    if (
+      reconcile(
+        account,
+        ledger.flatMap((event) => event.postings),
+      )
+    )
+      continue;
+    await ctx.db.patch(account._id, { paused: true });
+    const incident = await ctx.db
+      .query('paperIncidents')
+      .withIndex('run', (q) => q.eq('runId', run._id))
+      .filter((q) =>
+        q.and(
+          q.eq(q.field('agentId'), account.agentId),
+          q.eq(q.field('code'), 'RECONCILIATION_FAILED'),
+        ),
+      )
+      .first();
+    if (!incident)
+      await ctx.db.insert('paperIncidents', {
+        runId: run._id,
+        agentId: account.agentId,
+        code: 'RECONCILIATION_FAILED',
+        at: now,
+      });
+    for (const order of await ctx.db
+      .query('paperOrders')
+      .withIndex('pending', (q) => q.eq('runId', run._id).eq('status', 'ACCEPTED'))
+      .filter((q) => q.eq(q.field('agentId'), account.agentId))
+      .collect()) {
+      await ctx.db.patch(order._id, { status: 'REJECTED', reason: 'RECONCILIATION_FAILED' });
+    }
+  }
+}
 export const pauseAll = mutation({
   args: { ownerToken: v.string() },
   handler: async (ctx, args) => {
@@ -383,16 +430,9 @@ export const establishDay = internalMutation({
           .order('desc')
           .filter((q) => q.eq(q.field('agentId'), account.agentId))
           .first();
-        // Baseline must be witnessed within five minutes of midnight; otherwise manual incident review is required.
-        const midnight = Date.parse(`${utcDay(now)}T00:00:00Z`);
-        if (!previous?.equityUsd || Math.abs(previous.at - midnight) > 300_000) continue;
-        await ctx.db.patch(account._id, {
-          riskDay: utcDay(now),
-          filledToday: 0,
-          dailyBaselineUsd: decimal(previous.equityUsd).gt(mark.equityUsd)
-            ? previous.equityUsd
-            : mark.equityUsd,
-        });
+        const patch = rolloverDay(account, mark, previous, now);
+        if (!patch) continue;
+        await ctx.db.patch(account._id, patch);
       }
       await ctx.db.insert('paperMarks', {
         runId: run._id,
@@ -453,6 +493,10 @@ export const dashboard = query({
           .take(30),
         fills: await ctx.db
           .query('paperFills')
+          .withIndex('run', (q) => q.eq('runId', run._id))
+          .collect(),
+        incidents: await ctx.db
+          .query('paperIncidents')
           .withIndex('run', (q) => q.eq('runId', run._id))
           .collect(),
       });

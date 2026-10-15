@@ -11,7 +11,10 @@ for (const symbol of ['BTC', 'ETH', 'SOL']) {
     instrumentId: `kraken:${symbol}/USD`,
   });
   console.log(`${symbol}/USD: ${response.status}`);
-  if (response.status !== 'RECEIVED') blocked = true;
+  if (response.status !== 'RECEIVED') {
+    blocked = true;
+    break;
+  }
 }
 const status = await client.query(api.marketData.status, { clock: Date.now() });
 for (const row of status.rows.filter((row) => row.provider === 'kraken')) {
@@ -19,6 +22,8 @@ for (const row of status.rows.filter((row) => row.provider === 'kraken')) {
     JSON.stringify({
       symbol: row.symbol,
       event: row.event?.status,
+      error: row.event?.message,
+      diagnostic: row.event?.diagnostic,
       sourceTimestamp: row.quote?.sourceTimestamp,
       sourceMode: row.quote?.sourceMode,
       quoteVerified: row.capability?.quoteVerified,
