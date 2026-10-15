@@ -5,6 +5,7 @@ import { aiTownTables } from './aiTown/schema';
 import { conversationId, playerId } from './aiTown/ids';
 import { engineTables } from './engine/schema';
 import { officeTables } from './office/schema';
+import { tradingTables } from './trading/schema';
 
 export default defineSchema({
   music: defineTable({
@@ -26,4 +27,5 @@ export default defineSchema({
   ...aiTownTables,
   ...engineTables,
   ...officeTables,
+  ...tradingTables,
 });

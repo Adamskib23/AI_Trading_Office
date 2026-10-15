@@ -1,3 +1,21 @@
+.paper-lab {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr);
+  min-width: 0;
+  gap: 22px;
+}
+.paper-lab > .registry-panel {
+  min-width: 0;
+}
+.lab-controls {
+  display: flex;
+  gap: 12px;
+  flex-wrap: wrap;
+  margin-top: 16px;
+}
+.reconciled {
+  color: #8bd3b5;
+}
 .office-shell {
   min-height: 100vh;
   background: #0e1b24;

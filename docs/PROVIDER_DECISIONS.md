@@ -2,6 +2,8 @@
 
 Reviewed 14 October 2026. This is a feasibility audit, not an integration or completed entitlement certification. No subscriptions purchased; no account secrets requested. Official start remains gated on actual per-symbol quotes/candles, timestamps, sessions and data rights.
 
+**Phase 2 update, 15 October:** read-only Twelve Data/Kraken adapters and quota gates are implemented. Twelve Data credentials are pending the owner's free account. Public Kraken server/trade timestamps were approximately one hour ahead of independently checked UTC; rejected as PROVIDER_CLOCK_SKEW, with no time correction or financial fills. Pair metadata verification from Phase 0 does not validate the current feed. All real-provider acceptance and publication-rights gates remain open. See [PHASE_2.md](PHASE_2.md) for actual evidence, setup and requirements.
+
 ## Provisional selection
 
 Evaluate **Twelve Data Free for US securities/ETFs and FX**, plus **Kraken public spot data for crypto**. Alpaca Basic/IEX is a securities fallback; OANDA practice is an FX fallback if eligible. These candidates follow v0.4. No provider is approved for official use yet. Direct public Kraken endpoints may avoid introducing CCXT for three pairs; decide adapter details in Phase 2.
@@ -63,4 +65,4 @@ Next-eligible-quote execution requires additional post-proposal data. Maximum 30
 6. Complete Kraken timestamped quote/closed candle probes and rate/licence review, with status/maintenance handling.
 7. Record all source versions and test session boundaries/DST/corporate actions before finalising the symbol universe. If a required class lacks adequate access, keep official preflight blocked and present scoped alternatives.
 
-No market adapters or research integration were implemented in Phase 0. Model availability and research API wiring are deliberately deferred to Phases 3 and 4.
+No market adapters or research integration were implemented in Phase 0. Phase 2 now has read-only adapters; real credentials/source validation remain pending as stated above. Model availability and research API wiring remain deferred to Phases 3 and 4.

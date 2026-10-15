@@ -6,6 +6,8 @@ import { TableNames } from './_generated/dataModel';
 import { v } from 'convex/values';
 
 const crons = cronJobs();
+crons.interval('paper order expiry and health',{seconds:60},internal.paper.sweep);
+crons.interval('shared paper market data',{seconds:60},internal.marketData.due);
 
 crons.interval(
   'stop inactive worlds',

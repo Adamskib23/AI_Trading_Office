@@ -26,8 +26,9 @@ const security = (
   baseCurrency: symbol,
   quoteCurrency: 'USD',
   calendarId: 'us-equity',
-  quantityPrecision: 0,
-  fractionalAllowed: false,
+  // Explicit paper-only fractional-share assumption; not a broker capability claim.
+  quantityPrecision: 6,
+  fractionalAllowed: true,
 });
 export const INSTRUMENTS: Instrument[] = [
   ...['AAPL', 'MSFT', 'NVDA'].map((s) => security(s, 'stock', 'NASDAQ')),

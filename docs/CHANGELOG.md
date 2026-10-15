@@ -1,5 +1,13 @@
 # Project changelog
 
+## 15 October 2026 — Phase 2 paper engine (pre-trial, source validation pending)
+
+- Decimal-safe four-currency accounts, fractional paper positions, atomic next-quote fills, double-entry postings and replay reconciliation.
+- Risk caps, timestamps/session/rights/corporate-action gates, idempotency, per-agent/global pauses, expiry and independent financial scheduling.
+- Isolated synthetic multi-class tests, provisional passive benchmarks, read-only Twelve Data/Kraken adapters and quota guards.
+- Paper lab and hidden local market-key setup. Real feed acceptance remains incomplete: Twelve Data account pending; Kraken clock-skew rejected.
+- No AI trading, research, paid data subscription, live trading or official experiment.
+
 ## 15 October 2026 — Phase 1 foundations (pre-trial)
 
 - Separate office world with five inactive employee avatars, assigned desks and original SVG office furniture; preserves baseline history and upstream movement/rendering.

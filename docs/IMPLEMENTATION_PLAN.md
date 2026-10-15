@@ -1,6 +1,6 @@
 # Incremental implementation plan
 
-Authority: supplied architecture v0.4. Owner approved Phase 1 on 15 October 2026 after confirming the baseline runs. Phase 2 is not yet authorised. See PHASE_1.md for implemented foundations and remaining remote-fork setup.
+Authority: supplied architecture v0.4. Owner approved Phase 2 on 15 October 2026. Phase 2 implementation/scripted checks are delivered; real-provider verification is incomplete. See PHASE_2.md. Phase 3 is not authorised. The owner fork is Adamskib23/AI_Trading_Office.
 
 | Phase | Small implementation increments | Required evidence before next phase |
 | --- | --- | --- |

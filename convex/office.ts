@@ -98,6 +98,10 @@ export const overview = query({
       .collect();
     const selections = await ctx.db.query('officeInstruments').collect();
     const now = Date.now();
+    const coverage = await ctx.db
+      .query('marketCapabilities')
+      .filter((q) => q.eq(q.field('scope'), 'provider'))
+      .collect();
     return {
       setup,
       profiles,
@@ -105,7 +109,17 @@ export const overview = query({
       instruments: INSTRUMENTS.map((instrument) => ({
         ...instrument,
         selected: selections.find((s) => s.instrumentId === instrument.id)?.selected ?? false,
-        entitlement: 'UNVERIFIED' as const,
+        entitlement: coverage.some(
+          (c) =>
+            c.instrumentId === instrument.id &&
+            c.quoteVerified &&
+            c.candlesVerified &&
+            c.rightsVerified &&
+            c.sessionVerified &&
+            c.sourceMode === 'live',
+        )
+          ? ('REVIEWED' as const)
+          : ('UNVERIFIED' as const),
         session: marketState(instrument.calendarId, now),
       })),
       audit: await ctx.db.query('officeAudit').order('desc').take(15),

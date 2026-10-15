@@ -44,7 +44,7 @@ export interface LLMConfig {
 }
 
 export function getLLMConfig(): LLMConfig {
-  if (process.env.OFFICE_PHASE === '1') throw new Error('Model calls are disabled during Phase 1');
+  if (['1','2'].includes(process.env.OFFICE_PHASE??'')) throw new Error(`Model calls are disabled during Phase ${process.env.OFFICE_PHASE}`);
   let provider = process.env.LLM_PROVIDER;
   if (provider ? provider === 'openai' : process.env.OPENAI_API_KEY) {
     if (EMBEDDING_DIMENSION !== OPENAI_EMBEDDING_DIMENSION) {

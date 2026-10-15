@@ -2,6 +2,7 @@ import { useEffect, useState } from 'react';
 import { useMutation, useQuery } from 'convex/react';
 import { api } from '../convex/_generated/api';
 import Game from './components/Game';
+import PaperLab from './components/PaperLab';
 import './office.css';
 
 export default function Home() {
@@ -11,7 +12,7 @@ export default function Home() {
     return () => clearInterval(timer);
   }, []);
   const office = useQuery(api.office.overview, { clock });
-  const [tab, setTab] = useState<'office' | 'markets' | 'activity'>('office');
+  const [tab, setTab] = useState<'office' | 'markets' | 'paper' | 'activity'>('office');
   const [ownerToken, setOwnerToken] = useState('');
   const [credential, setCredential] = useState('');
   const [loginOpen, setLoginOpen] = useState(false);
@@ -49,11 +50,11 @@ export default function Home() {
       </header>
       <section className="office-intro">
         <div>
-          <span className="eyebrow">PHASE 1 / OFFICE FOUNDATIONS</span>
+          <span className="eyebrow">PHASE 2 / PAPER TRADING INFRASTRUCTURE</span>
           <h1>A workspace for five independent minds.</h1>
           <p>
-            The team is in place. Trading and AI activity remain disabled while we build the
-            foundations.
+            The team is in place. Test the paper engine with scripted traders. AI activity remains
+            disabled.
           </p>
         </div>
         <span className="setup-badge">● SETUP · EXPERIMENT NOT STARTED</span>
@@ -105,7 +106,7 @@ export default function Home() {
           <strong>
             $1,000<small> / employee</small>
           </strong>
-          <p>Planned funding · portfolios not created yet</p>
+          <p>Official funding not started · TEST balances in Paper lab</p>
         </article>
         <article>
           <span>MARKET UNIVERSE</span>
@@ -122,13 +123,15 @@ export default function Home() {
         </article>
       </section>
       <nav className="office-tabs" aria-label="Office sections">
-        {(['office', 'markets', 'activity'] as const).map((item) => (
+        {(['office', 'markets', 'paper', 'activity'] as const).map((item) => (
           <button key={item} className={tab === item ? 'active' : ''} onClick={() => setTab(item)}>
             {item === 'office'
               ? 'The office'
               : item === 'markets'
                 ? 'Market registry'
-                : 'Setup activity'}
+                : item === 'paper'
+                  ? 'Paper lab'
+                  : 'Setup activity'}
           </button>
         ))}
         <span>{ownerToken ? 'CEO controls unlocked' : 'Observation mode'}</span>
@@ -150,6 +153,7 @@ export default function Home() {
       ) : (
         <>
           {tab === 'office' && <Game ownerToken={ownerToken} officeProfiles={office.profiles} />}
+          {tab === 'paper' && <PaperLab ownerToken={ownerToken} clock={clock} />}
           {tab === 'markets' && (
             <section className="registry-panel">
               <div className="panel-heading">
@@ -204,7 +208,9 @@ export default function Home() {
                           <small>{i.session.reason}</small>
                         </td>
                         <td>
-                          <span className="feed-unverified">Unverified</span>
+                          <span className="feed-unverified">
+                            {i.entitlement === 'REVIEWED' ? 'Coverage reviewed' : 'Unverified'}
+                          </span>
                         </td>
                       </tr>
                     ))}
@@ -212,8 +218,9 @@ export default function Home() {
                 </table>
               </div>
               <p className="registry-note">
-                New York sessions, 2026–2027 calendar. FX provider hours remain unverified. Crypto
-                venue health is not connected. All employees share the selected universe.
+                New York sessions, 2026–2027 calendar. See Paper lab for actual feed health and
+                review gates. All employees share the selected universe. Selection alone does not
+                enable trading.
               </p>
             </section>
           )}
@@ -242,7 +249,7 @@ export default function Home() {
       )}
       <footer className="office-footer">
         <span>Built on AI Town · React / PixiJS / Convex</span>
-        <span>Phase 1 · No live trading connection · Official run locked</span>
+        <span>Phase 2 · No live trading connection · Official run locked</span>
       </footer>
     </main>
   );
