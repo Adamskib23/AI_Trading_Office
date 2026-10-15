@@ -61,6 +61,8 @@ powershell.exe -NoProfile -ExecutionPolicy Bypass -File .\scripts\set-market-key
 
 The hidden prompt pipes the key to `TWELVE_DATA_API_KEY` in the local backend; it does not write a frontend key or command-line/history value. It does not change system execution policy.
 
+**Preferred file-based alternative:** put `TWELVE_DATA_API_KEY=your_key` in the Git-ignored `.secrets.env` at checkout root, then run `node scripts/import-secrets.mjs`. Use the blank `.secrets.env.example` template. Keep `.env.local` for Convex-generated URLs. Future-phase keys can be stored in the secrets file but the importer currently loads only the Phase 2 data key; no model/provider requests are made by importing.
+
 3. Open **Paper lab**, unlock CEO controls, and refresh one stock, one broad ETF, one commodity ETF and FX while their sessions are open. Record actual source timestamps, closed raw candles, entitlement and licence evidence. Inspect clock errors rather than weakening validation.
 4. Complete dated reviews for rights, source mode, FX hours and corporate-action windows. `scripts/review-feed.mjs` accepts an ignored local JSON file and calls the authenticated review endpoint. Do not attest to evidence that has not been checked. Refresh again after a review before testing orders.
 5. Create provider TEST accounts and submit scripted orders through `scripts/paper-order.mjs .office/order.json`. Order JSON contains only `runId` and a `proposal` object (agentId, cycleId, proposalIndex, instrumentId, action and quantity or currency conversion fields). No prices, balances or fills are accepted from the script. Review acceptance/rejection and later fills in the lab.

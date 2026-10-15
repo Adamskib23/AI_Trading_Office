@@ -1,5 +1,11 @@
 # Project changelog
 
+## 15 October 2026 — local secrets-file workflow
+
+- Added ignored `.secrets.env` and backup patterns, with a blank tracked example.
+- Added local-only stdin importer; validates Git protection and deployment selection, rejects VITE_ names, imports only the approved Phase 2 data key and keeps future model keys disconnected.
+- Preserved Convex-generated `.env.local` and the existing hidden-prompt alternative. No keys committed or model calls enabled.
+
 ## 15 October 2026 — Phase 2 paper engine (pre-trial, source validation pending)
 
 - Decimal-safe four-currency accounts, fractional paper positions, atomic next-quote fills, double-entry postings and replay reconciliation.
