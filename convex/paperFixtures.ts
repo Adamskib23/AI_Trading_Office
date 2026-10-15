@@ -274,7 +274,17 @@ async function recoveryScenario(ctx: MutationCtx, label: string) {
     .collect();
   if (fills.length || ledger.some((e) => e.event !== 'TEST_FUNDING'))
     throw new Error('Recovery posted a forbidden fill');
-  await ctx.db.patch(runId, { clock: clock + 180_006, status: 'COMPLETED' });
+  // A bounded TEST must reject at its deadline even before the expiry cron runs.
+  await ctx.db.patch(runId, { stopAt: clock + 180_007 });
+  const deadlineId = await submit(
+    ctx,
+    runId,
+    { ...proposal, agentId: 'sophie', proposalIndex: 2 },
+    clock + 180_007,
+  );
+  if ((await ctx.db.get(deadlineId))?.reason !== 'PAUSED')
+    throw new Error('Bounded TEST accepted an order at its deadline');
+  await ctx.db.patch(runId, { clock: clock + 180_008, status: 'COMPLETED' });
   await ctx.db.insert('officeAudit', {
     actor: 'owner',
     action: 'RECOVERY_FIXTURE_COMPLETED',
@@ -286,6 +296,7 @@ async function recoveryScenario(ctx: MutationCtx, label: string) {
     source: 'FIXTURE',
     expiryPassed: true,
     discrepancyDetected: true,
+    deadlinePassed: true,
     incidents: incidents.length,
     fills: fills.length,
   };
@@ -297,11 +308,14 @@ export const scheduledRecovery = internalMutation({
 });
 
 export const scheduleRecovery = mutation({
-  args: { ownerToken: v.string(), checkId: v.string() },
+  args: { ownerToken: v.string(), checkId: v.string(), delayMs: v.optional(v.number()) },
   handler: async (ctx, args): Promise<Id<'_scheduled_functions'>> => {
     assertOwner(args.ownerToken);
     if (!/^[a-zA-Z0-9-]{1,40}$/.test(args.checkId)) throw new Error('Invalid check ID');
-    const jobId = await ctx.scheduler.runAfter(5000, internal.paperFixtures.scheduledRecovery, {
+    const delayMs = args.delayMs ?? 5000;
+    if (!Number.isInteger(delayMs) || delayMs < 5000 || delayMs > 120000)
+      throw new Error('Recovery delay must be 5–120 seconds');
+    const jobId = await ctx.scheduler.runAfter(delayMs, internal.paperFixtures.scheduledRecovery, {
       checkId: args.checkId,
     });
     await ctx.db.insert('officeAudit', {
@@ -320,6 +334,6 @@ export const recoveryJobStatus = query({
     assertOwner(args.ownerToken);
     const job = await ctx.db.system.get(args.jobId);
     if (!job) throw new Error('Recovery job unavailable');
-    return { state: job.state.kind, name: job.name };
+    return { state: job.state.kind, name: job.name, scheduledTime: job.scheduledTime };
   },
 });

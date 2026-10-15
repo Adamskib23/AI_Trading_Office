@@ -164,6 +164,15 @@ export default function PaperLab({ ownerToken, clock }: { ownerToken: string; cl
                 {new Date(incident.at).toLocaleString()}
               </p>
             ))}
+            {test.stopAt && (
+              <p>Bounded day check stops: {new Date(test.stopAt).toLocaleString()}</p>
+            )}
+            {test.checks?.map((check) => (
+              <p key={check._id} role="status">
+                {check.kind}: {check.passed ? 'PASS' : 'FAILED — review required'} ·{' '}
+                {new Date(check.at).toLocaleString()}
+              </p>
+            ))}
             {test.mode === 'PROVIDER' && (
               <button
                 disabled={!ownerToken || busy || test.status === 'COMPLETED'}

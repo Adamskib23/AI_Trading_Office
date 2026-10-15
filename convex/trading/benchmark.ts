@@ -12,6 +12,9 @@ export type Benchmark = {
     quantity?: string;
     fee?: string;
     price?: string;
+    sourceTimestamp?: number;
+    retrievedAt?: number;
+    provider?: string;
   }[];
 };
 export function initialBenchmark(now: number): Benchmark {
@@ -87,6 +90,9 @@ export function advanceBenchmark(before: Benchmark, ctx: Context): Benchmark {
     leg.quantity = quantity.toFixed();
     leg.fee = fee.toFixed();
     leg.price = price.toFixed();
+    leg.sourceTimestamp = quote.sourceTimestamp;
+    leg.retrievedAt = quote.retrievedAt;
+    leg.provider = quote.provider;
   }
   return state;
 }

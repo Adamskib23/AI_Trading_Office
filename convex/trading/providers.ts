@@ -25,24 +25,32 @@ const price = (value: unknown) => {
   return value;
 };
 async function request(url: URL) {
-  let response: Response;
   const controller = new AbortController();
   const timeout = setTimeout(() => controller.abort(), 15_000);
   try {
-    response = await fetch(url.toString(), { signal: controller.signal });
-  } catch {
-    throw new Error('PROVIDER_NETWORK_ERROR');
+    let response: Response;
+    try {
+      response = await fetch(url.toString(), { signal: controller.signal });
+    } catch {
+      throw new Error(controller.signal.aborted ? 'PROVIDER_TIMEOUT' : 'PROVIDER_NETWORK_ERROR');
+    }
+    if (!response.ok)
+      throw new Error(
+        response.status === 429 ? 'PROVIDER_RATE_LIMIT' : `PROVIDER_HTTP_${response.status}`,
+      );
+    let raw: unknown;
+    try {
+      raw = await response.json();
+    } catch {
+      throw new Error(controller.signal.aborted ? 'PROVIDER_TIMEOUT' : 'PROVIDER_INVALID_RESPONSE');
+    }
+    const data = object(raw);
+    if (data.status === 'error' || (Array.isArray(data.error) && data.error.length))
+      throw new Error('PROVIDER_REJECTED_REQUEST');
+    return data;
   } finally {
     clearTimeout(timeout);
   }
-  if (!response.ok)
-    throw new Error(
-      response.status === 429 ? 'PROVIDER_RATE_LIMIT' : `PROVIDER_HTTP_${response.status}`,
-    );
-  const data = object(await response.json());
-  if (data.status === 'error' || (Array.isArray(data.error) && data.error.length))
-    throw new Error('PROVIDER_REJECTED_REQUEST');
-  return data;
 }
 export function parseTwelveQuote(raw: unknown, instrument: Instrument, received: number): Quote {
   const data = object(raw);

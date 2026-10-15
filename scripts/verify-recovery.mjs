@@ -8,16 +8,27 @@ const client = new ConvexHttpClient('http://127.0.0.1:3210', { logger: false });
 const ownerToken = readFileSync('.office/owner-token.txt', 'utf8').trim();
 if (process.argv.includes('--schedule')) {
   const checkId = randomUUID();
-  const jobId = await client.mutation(api.paperFixtures.scheduleRecovery, { ownerToken, checkId });
+  const delayMs = process.argv.includes('--restart-delay') ? 60000 : 5000;
+  const jobId = await client.mutation(api.paperFixtures.scheduleRecovery, {
+    ownerToken,
+    checkId,
+    delayMs,
+  });
   writeFileSync('.office/recovery-job.json', JSON.stringify({ jobId, checkId }));
   console.log(
-    'Recovery fixture scheduled in Convex. This process now exits; no browser or provider requests required. Check with --scheduled-status after five seconds.',
+    `Recovery fixture scheduled in Convex after ${delayMs / 1000}s. This process now exits; no browser or provider requests required. Check with --scheduled-status after it is due.`,
   );
   process.exit(0);
 }
 if (process.argv.includes('--scheduled-status')) {
   const { jobId, checkId } = JSON.parse(readFileSync('.office/recovery-job.json', 'utf8'));
   const status = await client.query(api.paperFixtures.recoveryJobStatus, { ownerToken, jobId });
+  if (status.state === 'pending' || status.state === 'inProgress') {
+    console.log(
+      `Recovery check ${status.state}; scheduled UTC ${new Date(status.scheduledTime).toISOString()}. No pass claimed yet.`,
+    );
+    process.exit(2);
+  }
   assert.equal(status.state, 'success');
   const dashboard = await client.query(api.paper.dashboard, { clock: Date.now() });
   const run = dashboard.runs.find((row) => row.label === `RECOVERY FIXTURE ${checkId}`);
@@ -33,6 +44,7 @@ const result = await client.mutation(api.paperFixtures.runRecoveryScenario, { ow
 assert.equal(result.source, 'FIXTURE');
 assert.equal(result.expiryPassed, true);
 assert.equal(result.discrepancyDetected, true);
+assert.equal(result.deadlinePassed, true);
 assert.equal(result.incidents, 1);
 assert.equal(result.fills, 0);
 console.log(JSON.stringify(result));

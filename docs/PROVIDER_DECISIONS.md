@@ -6,6 +6,8 @@ Reviewed 14 October 2026. This is a feasibility audit, not an integration or com
 
 ## Provisional selection
 
+Latest owner-rights update, 15 October: internal paper-use reviews are recorded for Twelve Data's 11 symbols and Kraken's three symbols, based on the owner's provider confirmation/terms review. Redistribution and public display remain outside that scope; terminal prices are off. FX source/session and the short AAPL/SPY/GLD corporate-action review are documented in [PHASE_2_ACCEPTANCE.md](PHASE_2_ACCEPTANCE.md). This does not automatically clear the other securities or the eventual official-trial window.
+
 Evaluate **Twelve Data Free for US securities/ETFs and FX**, plus **Kraken public spot data for crypto**. Alpaca Basic/IEX is a securities fallback; OANDA practice is an FX fallback if eligible. These candidates follow v0.4. No provider is approved for official use yet. Direct public Kraken endpoints may avoid introducing CCXT for three pairs; decide adapter details in Phase 2.
 
 | Canonical proposed symbol | Primary candidate / provider symbol | Fallback | Session | Verification state |

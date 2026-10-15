@@ -1,5 +1,13 @@
 # Development logbook
 
+## 15 October 2026 — Kraken review and remaining Phase 2 acceptance
+
+Owner confirmed their Kraken terms review permits current internal use without redistribution. Recorded this scope for three crypto instruments, preserving other settings and leaving terminal prices off. Independently reviewed Twelve Data Forex API v2, weekday source freshness, NYSE sessions and short AAPL/SPY/GLD corporate-action evidence; see PHASE_2_ACCEPTANCE.md. These are engineering checks, not agent research integration.
+
+Stopped only the verified local Convex backend process (PID 25200) and its Convex dev supervisor (PID 26472), then restarted the same checkout without altering data files or opening a browser. All five funding-only provider TEST accounts, balances, paused status and reconciliation persisted. A recovery fixture scheduled before shutdown completed after restart.
+
+Added bounded midnight refreshes and a finite provider day-check with automatic stop; tested rejection before required acceptance fills and for invalid owner access. An isolated fixture verifies deadline admission before cron, and existing expiry/reconciliation checks still pass. Fill/benchmark records now retain source and retrieval clocks. Body-fetch timeout coverage added. No model calls, subscriptions, publication or official trial.
+
 ## 15 October 2026 — temporary Twelve Data paper permission; terminal prices off
 
 Owner clarified the permission was from Twelve Data, that Kraken had not been contacted, and requested terminal display be switchable and off for now. Recorded owner-reported temporary internal paper rights for all 11 Twelve Data instruments through the existing authenticated review endpoint, preserving every session/source/corporate-action value. Kraken reviews were unchanged. No provider requests, paper orders or subscription changes were made for that update.

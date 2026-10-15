@@ -14,6 +14,12 @@ The owner reports that Twelve Data said the current paper use is okay for now an
 
 The corresponding Twelve Data reviews preserve existing unverified session/source/corporate-action fields. Those are separate technical checks and remain unchanged. Turning terminal prices on later is a display setting, not evidence that a provider granted display or publication rights; review the relevant terms before using it.
 
+### Subsequent Kraken and technical review — 15 October 2026
+
+The owner subsequently reviewed Kraken's permissions and confirmed internal use without redistribution. Recorded that owner-reported scope for BTC/USD, ETH/USD and SOL/USD, preserving the other capability values. No correspondence with Kraken, public display or redistribution permission is claimed. Terminal prices remain off.
+
+The [Phase 2 acceptance evidence](PHASE_2_ACCEPTANCE.md) now records the technical review separately: Twelve Data's documented continuous aggregate FX feed, the retained conservative New York weekday conversion window, fresh weekday FX observations, US regular-session calendar and a bounded AAPL/SPY/GLD corporate-action review ending 16 October at 20:00 UTC. Open-session source and execution results are recorded only after they run. Other securities retain separate review gates.
+
 | Concern | Current evidence | Required before recording a positive review |
 | --- | --- | --- |
 | Twelve Data internal simulation | [Basic pricing](https://twelvedata.com/pricing) lists internal non-display usage | Confirm the actual account tier and permission for this specific five-agent, paper-only evaluation, retention and audit history |
@@ -43,6 +49,8 @@ A corresponding Kraken enquiry can describe public Time/SystemStatus/Trades/OHLC
 3. Record each supported dated review with `scripts/review-feed.mjs` and an ignored local JSON file. Set only fields justified by the evidence. The existing rights flag is an execution gate, not a blanket grant to publish data.
 4. During an open US session, `node scripts/verify-provider-acceptance.mjs --run` will first refuse unresolved structural gates. If they pass, it refreshes the five representative feeds, rechecks freshness, creates a new provider TEST and proposes one approximately $100 paper order per employee across stock, broad ETF, commodity ETF, EUR conversion and BTC. The backend performs all risk checks and fills only on subsequent eligible quotes. The script checks five reconciled accounts and four benchmark sleeves, waits at most about 200 seconds and pauses the TEST on exit. It does not start an official run or change permissions. This successful path is prepared but has not yet run against eligible actual feeds.
 5. Complete actual-provider restart/day-boundary validation. The controlled-clock tests and scheduled fixture demonstrate specific recovery properties, not a real midnight run or backend-process restart. The full 24–72-hour agent/research soak remains Phase 6.
+
+The actual backend/supervisor restart has now been exercised with a paused provider TEST: all five funded accounts, balances, empty orders/fills and reconciliation survived. A recovery job scheduled before restart completed afterward. The real midnight check is a separate bounded provider TEST. After actual-feed acceptance passes, `node scripts/verify-day-boundary.mjs --start` resumes that verified TEST, refreshes open held assets during 23:58–00:05 UTC, and schedules a check/automatic pause at 00:06 UTC. `node scripts/verify-day-boundary.mjs --status` reads the persisted result. Pending is not a pass. Leave the Windows computer awake and local Convex running; the browser is unnecessary. No new proposals, models or research are scheduled by this check.
 
 Synthetic recovery checks are available now:
 

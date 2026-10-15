@@ -36,10 +36,9 @@ for (const row of status.rows.filter((row) => row.provider === 'kraken')) {
     assert.equal(row.quote.provider, 'kraken');
     assert.equal(row.capability?.candlesVerified, true);
   }
-  assert.notEqual(row.capability?.rightsVerified, true);
 }
 console.log(
   blocked
     ? 'Provider verification INCOMPLETE: inspect recorded errors; rejected data was not used for fills.'
-    : 'All public crypto quote/candle checks received data; rights review still pending.',
+    : 'All public crypto quote/candle checks received data; execution remains subject to the recorded scoped review and risk gates.',
 );

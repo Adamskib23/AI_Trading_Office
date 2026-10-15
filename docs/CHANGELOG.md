@@ -1,5 +1,12 @@
 # Project changelog
 
+## 15 October 2026 — source evidence and bounded midnight verification
+
+- Scoped owner-reported Kraken internal-use review, FX session/source evidence, bounded representative-securities corporate-action review and actual local backend restart evidence.
+- Added midnight polling for open held assets/foreign cash, bounded day-check scheduling, persisted results and automatic TEST deadlines enforced before cron.
+- Captured immutable fill/benchmark source clocks; actual-feed acceptance checks verify later-source execution.
+- Extended provider timeout through response-body parsing. Updated recovery/source checks and added 13-suite / 112-test coverage. Real-source execution/midnight results are tracked separately from prepared checks.
+
 ## 15 October 2026 — owner-scoped paper permission and display control
 
 - Recorded the owner's temporary Twelve Data internal paper-use permission for its 11 instruments; preserved technical gates and Kraken's unreviewed status.

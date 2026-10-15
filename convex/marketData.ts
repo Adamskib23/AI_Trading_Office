@@ -17,6 +17,7 @@ import {
   validateCandles,
 } from './trading/providers';
 import type { Quote } from './trading/types';
+import { midnightInstruments, midnightWindow } from './trading/polling';
 import { validQuote, utcDay } from './trading/engine';
 import { quoteFields, candleFields } from './trading/schema';
 import { settlePending } from './paper';
@@ -345,26 +346,53 @@ export const due = internalMutation({
       .query('officeInstruments')
       .filter((q) => q.eq(q.field('selected'), true))
       .collect();
-    for (const [index, item] of selected.entries()) {
+    const now = Date.now();
+    const activeRuns = runs.filter((run) => !run.stopAt || now < run.stopAt);
+    const accounts = [];
+    if (midnightWindow(now)) {
+      for (const run of activeRuns) {
+        accounts.push(
+          ...(await ctx.db
+            .query('paperAccounts')
+            .withIndex('runAgent', (q) => q.eq('runId', run._id))
+            .collect()),
+        );
+        const benchmark = await ctx.db
+          .query('paperBenchmarks')
+          .withIndex('run', (q) => q.eq('runId', run._id))
+          .unique();
+        if (benchmark) accounts.push(benchmark.account);
+      }
+    }
+    // Prioritize only held, open-market valuation sources around midnight.
+    // Ordinary hourly traffic is deferred during this bounded window.
+    const pulse = midnightWindow(now);
+    const targets = pulse
+      ? midnightInstruments(accounts, now)
+      : selected.map((item) => item.instrumentId);
+    for (const [index, instrumentId] of targets.entries()) {
+      if (!activeRuns.length) break;
       const latest = await ctx.db
         .query('feedEvents')
-        .withIndex('instrument', (q) => q.eq('instrumentId', item.instrumentId))
+        .withIndex('instrument', (q) => q.eq('instrumentId', instrumentId))
         .order('desc')
         .first();
-      if (!latest || Date.now() - latest.at >= 3600_000) {
+      if (!latest || now - latest.at >= (pulse ? 45_000 : 3600_000)) {
         await ctx.db.insert('feedEvents', {
-          instrumentId: item.instrumentId,
-          provider: item.instrumentId.startsWith('kraken:') ? 'kraken' : 'twelve',
-          at: Date.now(),
+          instrumentId,
+          provider: instrumentId.startsWith('kraken:') ? 'kraken' : 'twelve',
+          at: now,
           status: 'SCHEDULED',
-          message: 'Hourly shared polling reserved',
+          message: pulse
+            ? 'Bounded midnight valuation refresh reserved'
+            : 'Hourly shared polling reserved',
         });
         await ctx.scheduler.runAfter(index * 16_000, internal.marketData.poll, {
-          instrumentId: item.instrumentId,
+          instrumentId,
         });
       }
     }
-    for (const run of runs)
+    for (const run of activeRuns)
       await ctx.scheduler.runAfter(0, internal.paper.establishDay, { runId: run._id });
   },
 });

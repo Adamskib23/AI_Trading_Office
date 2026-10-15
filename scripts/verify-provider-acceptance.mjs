@@ -1,5 +1,5 @@
 import assert from 'node:assert/strict';
-import { readFileSync } from 'node:fs';
+import { readFileSync, writeFileSync } from 'node:fs';
 import { randomUUID } from 'node:crypto';
 import Decimal from 'decimal.js';
 import { ConvexHttpClient } from 'convex/browser';
@@ -141,7 +141,18 @@ if (structural.length) {
     for (const fill of run.fills) {
       const order = run.orders.find((item) => item._id === fill.orderId);
       assert.notEqual(fill.quoteId, order.observedQuoteId);
+      assert(fill.sourceTimestamp > order.acceptedAt);
+      assert(fill.retrievedAt > order.acceptedAt);
+      assert.equal(fill.sourceMode, 'live');
     }
+    for (const leg of run.benchmark.legs) {
+      assert(leg.sourceTimestamp > run.benchmark.startedAt);
+      assert(leg.retrievedAt > run.benchmark.startedAt);
+    }
+    writeFileSync(
+      '.office/provider-acceptance.json',
+      JSON.stringify({ runId, completedAt: Date.now() }),
+    );
     console.log(
       JSON.stringify({
         runId,

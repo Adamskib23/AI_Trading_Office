@@ -58,7 +58,7 @@ export async function tradingContext(
     capabilities,
     selected,
     mode: run.mode,
-    globalPaused: run.status !== 'ACTIVE',
+    globalPaused: run.status !== 'ACTIVE' || (!!run.stopAt && now >= run.stopAt),
   };
 }
 export async function createTestRun(
@@ -264,6 +264,10 @@ export async function settlePending(
       instrumentId: order.instrumentId,
       at: now,
       quoteId: result.quoteId!,
+      sourceTimestamp: quote.sourceTimestamp,
+      retrievedAt: quote.retrievedAt,
+      provider: quote.provider,
+      sourceMode: quote.sourceMode,
       price: result.price!,
       quantity: result.quantity!,
       gross: result.gross!,
@@ -296,7 +300,12 @@ export const sweep = internalMutation({
       .query('paperRuns')
       .filter((q) => q.eq(q.field('mode'), 'PROVIDER'))
       .collect();
-    for (const run of runs) {
+    for (const storedRun of runs) {
+      let run = storedRun;
+      if (run.stopAt && Date.now() >= run.stopAt && run.status === 'ACTIVE') {
+        await ctx.db.patch(run._id, { status: 'PAUSED' });
+        run = { ...run, status: 'PAUSED' };
+      }
       await reconcileRun(ctx, run, Date.now());
       await settlePending(ctx, run, Date.now());
     }
@@ -379,6 +388,8 @@ export const setPaused = mutation({
     assertOwner(args.ownerToken);
     const run = await ctx.db.get(args.runId);
     if (!run || run.status === 'COMPLETED') throw new Error('Run unavailable');
+    if (!args.paused && run.stopAt && Date.now() >= run.stopAt)
+      throw new Error('Bounded TEST expired; create a new TEST');
     if (args.agentId) {
       const account = await ctx.db
         .query('paperAccounts')
@@ -446,10 +457,108 @@ export const establishDay = internalMutation({
   },
 });
 
+export const startDayBoundaryCheck = mutation({
+  args: { ownerToken: v.string(), runId: v.id('paperRuns') },
+  handler: async (ctx, args): Promise<{ stopAt: number }> => {
+    assertOwner(args.ownerToken);
+    const run = await ctx.db.get(args.runId);
+    if (!run || run.mode !== 'PROVIDER' || run.status === 'COMPLETED')
+      throw new Error('Provider TEST required');
+    if (run.dayCheckAt) throw new Error('Day check already scheduled; preserve its evidence');
+    const fills = await ctx.db
+      .query('paperFills')
+      .withIndex('run', (q) => q.eq('runId', run._id))
+      .collect();
+    if (fills.length < 5) throw new Error('Complete actual-feed acceptance fills first');
+    const now = Date.now();
+    const midnight = Date.parse(`${utcDay(now)}T00:00:00Z`) + 86400_000;
+    const stopAt = midnight + 360_000;
+    await ctx.db.patch(run._id, { status: 'ACTIVE', stopAt, dayCheckAt: midnight });
+    await ctx.scheduler.runAt(stopAt, internal.paper.finishDayBoundaryCheck, { runId: run._id });
+    await ctx.db.insert('officeAudit', {
+      actor: 'owner',
+      action: 'PAPER_DAY_CHECK_SCHEDULED',
+      value: JSON.stringify({ runId: run._id, stopAt }),
+      occurredAt: now,
+    });
+    return { stopAt };
+  },
+});
+
+export const finishDayBoundaryCheck = internalMutation({
+  args: { runId: v.id('paperRuns') },
+  handler: async (ctx, args) => {
+    const run = await ctx.db.get(args.runId);
+    if (!run?.dayCheckAt || !run.stopAt || Date.now() < run.stopAt)
+      throw new Error('Day check not due');
+    const existing = await ctx.db
+      .query('paperChecks')
+      .withIndex('run', (q) => q.eq('runId', run._id))
+      .filter((q) => q.eq(q.field('kind'), 'ACTUAL_UTC_ROLLOVER'))
+      .first();
+    if (existing) return;
+    await reconcileRun(ctx, run, Date.now());
+    const accounts = await ctx.db
+      .query('paperAccounts')
+      .withIndex('runAgent', (q) => q.eq('runId', run._id))
+      .collect();
+    const results = [];
+    for (const account of accounts) {
+      const mark = await ctx.db
+        .query('paperMarks')
+        .withIndex('run', (q) => q.eq('runId', run._id))
+        .filter((q) =>
+          q.and(q.eq(q.field('agentId'), account.agentId), q.gte(q.field('at'), run.dayCheckAt!)),
+        )
+        .order('desc')
+        .first();
+      const ledger = await ctx.db
+        .query('paperLedger')
+        .withIndex('runAgent', (q) => q.eq('runId', run._id).eq('agentId', account.agentId))
+        .collect();
+      results.push({
+        agentId: account.agentId,
+        riskDay: account.riskDay,
+        baseline: account.dailyBaselineUsd,
+        reconciled: reconcile(
+          account,
+          ledger.flatMap((event) => event.postings),
+        ),
+        midnightMark: !!mark?.priced && mark.at < run.stopAt,
+        filledToday: account.filledToday,
+      });
+    }
+    const expectedDay = utcDay(run.dayCheckAt);
+    const passed =
+      results.length === 5 &&
+      results.every(
+        (result) =>
+          result.reconciled &&
+          result.midnightMark &&
+          result.riskDay === expectedDay &&
+          result.filledToday === 0,
+      );
+    await ctx.db.insert('paperChecks', {
+      runId: run._id,
+      kind: 'ACTUAL_UTC_ROLLOVER',
+      at: Date.now(),
+      passed,
+      details: JSON.stringify(results),
+    });
+    await ctx.db.patch(run._id, { status: 'PAUSED' });
+    await settlePending(ctx, { ...run, status: 'PAUSED' }, Date.now());
+  },
+});
+
 export const dashboard = query({
-  args: { clock: v.number() },
-  handler: async (ctx) => {
-    const runs = await ctx.db.query('paperRuns').order('desc').take(10);
+  args: { clock: v.number(), runId: v.optional(v.id('paperRuns')) },
+  handler: async (ctx, args) => {
+    const requested = args.runId ? await ctx.db.get(args.runId) : null;
+    const runs = args.runId
+      ? requested
+        ? [requested]
+        : []
+      : await ctx.db.query('paperRuns').order('desc').take(10);
     const summaries = [];
     for (const run of runs) {
       const context = await tradingContext(
@@ -482,6 +591,10 @@ export const dashboard = query({
         .unique();
       summaries.push({
         ...run,
+        checks: await ctx.db
+          .query('paperChecks')
+          .withIndex('run', (q) => q.eq('runId', run._id))
+          .collect(),
         portfolios,
         benchmark: benchmark
           ? { ...benchmark, mark: markAccount(benchmark.account, context) }

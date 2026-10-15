@@ -75,6 +75,28 @@ test('Kraken timestamp comes from the actual trade, not the response clock', () 
   expect(q.quoteId).toContain('123');
   expect(q.bid).toBeUndefined();
 });
+
+test('provider timeout covers a stalled response body, not only response headers', async () => {
+  const originalFetch = globalThis.fetch;
+  jest.useFakeTimers();
+  globalThis.fetch = jest.fn<typeof fetch>().mockImplementation((_url, options) =>
+    Promise.resolve({
+      ok: true,
+      json: () =>
+        new Promise((_resolve, reject) => {
+          options?.signal?.addEventListener('abort', () => reject(new Error('body aborted')));
+        }),
+    } as Response),
+  );
+  try {
+    const pending = expect(new KrakenProvider().health()).rejects.toThrow('PROVIDER_TIMEOUT');
+    await jest.advanceTimersByTimeAsync(15_000);
+    await pending;
+  } finally {
+    globalThis.fetch = originalFetch;
+    jest.useRealTimers();
+  }
+});
 test('both providers exclude unfinished candles and validate OHLC bounds', () => {
   const twelve = parseTwelveCandles(
     {
