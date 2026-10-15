@@ -14,6 +14,7 @@ const init = mutation({
     numAgents: v.optional(v.number()),
   },
   handler: async (ctx, args) => {
+    if (await ctx.db.query('officeSetup').first()) throw new Error('Office already initialised; use office controls');
     detectMismatchedLLMProvider();
     const { worldStatus, engine } = await getOrCreateDefaultWorld(ctx);
     if (worldStatus.status !== 'running') {

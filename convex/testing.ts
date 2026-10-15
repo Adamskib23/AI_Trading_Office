@@ -16,6 +16,7 @@ import { fetchEmbedding } from './util/llm';
 import { chatCompletion } from './util/llm';
 import { startConversationMessage } from './agent/conversation';
 import { GameId } from './aiTown/ids';
+import { denyOfficeWorld } from './office/guard';
 
 // Clear all of the tables except for the embeddings cache.
 const excludedTables: Array<TableNames> = ['embeddingsCache'];
@@ -69,6 +70,7 @@ export const stop = mutation({
   handler: async (ctx) => {
     if (process.env.STOP_NOT_ALLOWED) throw new Error('Stop not allowed');
     const { worldStatus, engine } = await getDefaultWorld(ctx.db);
+    await denyOfficeWorld(ctx.db,worldStatus.worldId);
     if (worldStatus.status === 'inactive' || worldStatus.status === 'stoppedByDeveloper') {
       if (engine.running) {
         throw new Error(`Engine ${engine._id} isn't stopped?`);
@@ -85,6 +87,7 @@ export const stop = mutation({
 export const resume = mutation({
   handler: async (ctx) => {
     const { worldStatus, engine } = await getDefaultWorld(ctx.db);
+    await denyOfficeWorld(ctx.db,worldStatus.worldId);
     if (worldStatus.status === 'running') {
       if (!engine.running) {
         throw new Error(`Engine ${engine._id} isn't running?`);

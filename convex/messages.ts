@@ -2,6 +2,7 @@ import { v } from 'convex/values';
 import { mutation, query } from './_generated/server';
 import { insertInput } from './aiTown/insertInput';
 import { conversationId, playerId } from './aiTown/ids';
+import { denyOfficeWorld } from './office/guard';
 
 export const listMessages = query({
   args: {
@@ -37,6 +38,7 @@ export const writeMessage = mutation({
     text: v.string(),
   },
   handler: async (ctx, args) => {
+    await denyOfficeWorld(ctx.db,args.worldId);
     await ctx.db.insert('messages', {
       conversationId: args.conversationId,
       author: args.playerId,

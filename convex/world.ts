@@ -11,6 +11,7 @@ import {
 import { playerId } from './aiTown/ids';
 import { kickEngine, startEngine, stopEngine } from './aiTown/main';
 import { engineInsertInput } from './engine/abstractGame';
+import { denyOfficeWorld } from './office/guard';
 
 export const defaultWorldStatus = query({
   handler: async (ctx) => {
@@ -113,6 +114,7 @@ export const joinWorld = mutation({
     worldId: v.id('worlds'),
   },
   handler: async (ctx, args) => {
+    await denyOfficeWorld(ctx.db,args.worldId);
     // const identity = await ctx.auth.getUserIdentity();
     // if (!identity) {
     //   throw new ConvexError(`Not logged in`);
@@ -144,6 +146,7 @@ export const leaveWorld = mutation({
     worldId: v.id('worlds'),
   },
   handler: async (ctx, args) => {
+    await denyOfficeWorld(ctx.db,args.worldId);
     // const identity = await ctx.auth.getUserIdentity();
     // if (!identity) {
     //   throw new Error(`Not logged in`);
@@ -171,6 +174,9 @@ export const sendWorldInput = mutation({
     args: v.any(),
   },
   handler: async (ctx, args) => {
+    const status = await ctx.db.query('worldStatus').filter(q=>q.eq(q.field('engineId'),args.engineId)).unique();
+    if (!status) throw new Error('Unknown engine');
+    await denyOfficeWorld(ctx.db,status.worldId);
     // const identity = await ctx.auth.getUserIdentity();
     // if (!identity) {
     //   throw new Error(`Not logged in`);

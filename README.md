@@ -1,5 +1,15 @@
 # AI Town 🏠💻💌
 
+## AI Trading Office development fork
+
+Current milestone: **Phase 1 office foundations** (v0.4 architecture). Open <http://127.0.0.1:5173/ai-town/> or double-click **Start-Office.cmd** to start the local services. Model calls, market feeds and trading remain disabled.
+
+Read [Phase 1 setup and decisions](docs/PHASE_1.md), [approved architecture](docs/ARCHITECTURE.md), [implementation plan](docs/IMPLEMENTATION_PLAN.md), [provider decisions](docs/PROVIDER_DECISIONS.md) and [Phase 0 audit](docs/PHASE_0_AUDIT.md). Local CEO controls use a generated server-side token; follow Phase 1 instructions. Do not use upstream `npm run dev`/`init` for office setup.
+
+The upstream README below is retained for provenance and historical reference; its installation and public-demo instructions describe the original AI Town, not the current office milestone.
+
+---
+
 [Live Demo](https://www.convex.dev/ai-town)
 
 [Join our community Discord: AI Stack Devs](https://discord.gg/PQUmTBTGmT)

@@ -1,0 +1,11 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="256" height="32" viewBox="0 0 256 32" shape-rendering="crispEdges">
+<!-- Original AI Trading Office tiles, MIT. Eight 32px tiles; no external artwork. -->
+<g><path fill="#263c49" d="M0 0h32v32H0z"/><path stroke="#2d4553" d="M0 0h32M0 16h32M16 0v16M8 16v16"/></g>
+<g transform="translate(32)"><path fill="#172632" d="M0 0h32v32H0z"/><path fill="#425f6c" d="M0 0h32v8H0z"/><path fill="#304954" d="M0 8h32v3H0z"/></g>
+<g transform="translate(64)"><path fill="#10202b" d="M3 6h26v24H3z"/><path fill="#ad835b" d="M0 2h32v20H0z"/><path fill="#d6ad79" d="M0 2h32v4H0z"/><path fill="#6a503d" d="M3 22h4v9H3zM25 22h4v9h-4z"/></g>
+<g transform="translate(96)"><path fill="#ad835b" d="M0 2h32v20H0z"/><path fill="#d6ad79" d="M0 2h32v4H0z"/><path fill="#132532" d="M5 0h22v14H5z"/><path fill="#66d6ba" d="M7 2h18v9H7z"/><path stroke="#1c6e6f" d="m8 9 4-4 4 2 3-3 5 2"/><path fill="#c4d5d2" d="M14 14h4v3h-4zM8 18h16v3H8z"/></g>
+<g transform="translate(128)"><path fill="#315d61" d="M0 0h32v32H0z"/><path stroke="#528280" d="M3 3h26v26H3z"/></g>
+<g transform="translate(160)"><path fill="#b58d6a" d="M9 21h14l-2 10H11z"/><path fill="#44866d" d="M13 3h6v22h-6zM4 9h9v12H4zM19 6h9v13h-9z"/><path fill="#78b58c" d="M13 3h3v16h-3zM4 9h3v9H4z"/></g>
+<g transform="translate(192)"><path fill="#725942" d="M0 0h32v32H0z"/><path fill="#bc956a" d="M0 0h32v27H0z"/><path stroke="#d4b286" d="M2 2h28M2 24h28"/></g>
+<g transform="translate(224)"><path fill="#263c49" d="M0 0h32v32H0z"/><path fill="#172c37" d="M7 9h18v17H7z"/><path fill="#548487" d="M6 6h20v8H6zM8 14h16v10H8z"/><path stroke="#94b9ac" d="M9 8h14"/></g>
+</svg>

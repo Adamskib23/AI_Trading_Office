@@ -4,7 +4,7 @@ import PixiGame from './PixiGame.tsx';
 import { useElementSize } from 'usehooks-ts';
 import { Stage } from '@pixi/react';
 import { ConvexProvider, useConvex, useQuery } from 'convex/react';
-import PlayerDetails from './PlayerDetails.tsx';
+import { Doc } from '../../convex/_generated/dataModel';
 import { api } from '../../convex/_generated/api';
 import { useWorldHeartbeat } from '../hooks/useWorldHeartbeat.ts';
 import { useHistoricalTime } from '../hooks/useHistoricalTime.ts';
@@ -14,7 +14,13 @@ import { useServerGame } from '../hooks/serverGame.ts';
 
 export const SHOW_DEBUG_UI = !!import.meta.env.VITE_SHOW_DEBUG_UI;
 
-export default function Game() {
+export default function Game({
+  ownerToken,
+  officeProfiles,
+}: {
+  ownerToken: string;
+  officeProfiles: Doc<'employeeProfiles'>[];
+}) {
   const convex = useConvex();
   const [selectedElement, setSelectedElement] = useState<{
     kind: 'player';
@@ -35,6 +41,7 @@ export default function Game() {
   const { historicalTime, timeManager } = useHistoricalTime(worldState?.engine);
 
   const scrollViewRef = useRef<HTMLDivElement>(null);
+  const selectedProfile = officeProfiles.find((p) => p.playerId === selectedElement?.id);
 
   if (!worldId || !engineId || !game) {
     return null;
@@ -42,12 +49,13 @@ export default function Game() {
   return (
     <>
       {SHOW_DEBUG_UI && <DebugTimeManager timeManager={timeManager} width={200} height={100} />}
-      <div className="mx-auto w-full max-w grid grid-rows-[240px_1fr] lg:grid-rows-[1fr] lg:grid-cols-[1fr_auto] lg:grow max-w-[1400px] min-h-[480px] game-frame">
+      <div className="office-frame">
         {/* Game area */}
-        <div className="relative overflow-hidden bg-brown-900" ref={gameWrapperRef}>
+        <div className="office-canvas" ref={gameWrapperRef}>
+          <div className="office-canvas-caption">TRADING FLOOR · DRAG TO PAN / SCROLL TO ZOOM</div>
           <div className="absolute inset-0">
             <div className="container">
-              <Stage width={width} height={height} options={{ backgroundColor: 0x7ab5ff }}>
+              <Stage width={width} height={height} options={{ backgroundColor: 0x101e28 }}>
                 {/* Re-propagate context because contexts are not shared between renderers.
 https://github.com/michalochman/react-pixi-fiber/issues/145#issuecomment-531549215 */}
                 <ConvexProvider client={convex}>
@@ -59,6 +67,8 @@ https://github.com/michalochman/react-pixi-fiber/issues/145#issuecomment-5315492
                     height={height}
                     historicalTime={historicalTime}
                     setSelectedElement={setSelectedElement}
+                    ownerToken={ownerToken}
+                    selectedEmployeeId={selectedProfile?.employeeId}
                   />
                 </ConvexProvider>
               </Stage>
@@ -66,18 +76,50 @@ https://github.com/michalochman/react-pixi-fiber/issues/145#issuecomment-5315492
           </div>
         </div>
         {/* Right column area */}
-        <div
-          className="flex flex-col overflow-y-auto shrink-0 px-4 py-6 sm:px-6 lg:w-96 xl:pr-6 border-t-8 sm:border-t-0 sm:border-l-8 border-brown-900  bg-brown-800 text-brown-100"
-          ref={scrollViewRef}
-        >
-          <PlayerDetails
-            worldId={worldId}
-            engineId={engineId}
-            game={game}
-            playerId={selectedElement?.id}
-            setSelectedElement={setSelectedElement}
-            scrollViewRef={scrollViewRef}
-          />
+        <div className="office-inspector" ref={scrollViewRef}>
+          <span className="employee-tag">THE TEAM</span>
+          <h2>Five perspectives.</h2>
+          <p>Select an employee to inspect their profile.</p>
+          <div className="employee-roster">
+            {officeProfiles.map((p) => (
+              <button
+                key={p._id}
+                className={p.playerId === selectedElement?.id ? 'selected' : ''}
+                onClick={() =>
+                  setSelectedElement({ kind: 'player', id: p.playerId as GameId<'players'> })
+                }
+              >
+                <span className="employee-dot">{p.name[0]}</span>
+                <span>
+                  {p.name}
+                  <small>{p.specialty}</small>
+                </span>
+              </button>
+            ))}
+          </div>
+          {selectedProfile && (
+            <dl className="employee-facts">
+              <dt>STRATEGY PREFERENCE</dt>
+              <dd>{selectedProfile.strategy}</dd>
+              <dt>MARKET ACCESS</dt>
+              <dd>All verified, selected instruments</dd>
+              <dt>MODEL CANDIDATE</dt>
+              <dd>{selectedProfile.modelCandidate}</dd>
+              <dt>STATUS</dt>
+              <dd>Inactive · Profile v{selectedProfile.profileVersion}</dd>
+              <dt>DESK</dt>
+              <dd>
+                {selectedProfile.deskX}, {selectedProfile.deskY}
+              </dd>
+            </dl>
+          )}
+          <div className="phase-lock">AI inference and trading are disabled.</div>
+          {ownerToken && selectedProfile && (
+            <p>
+              Click an empty floor tile to move {selectedProfile.name}. Movement is an audited CEO
+              action.
+            </p>
+          )}
         </div>
       </div>
     </>

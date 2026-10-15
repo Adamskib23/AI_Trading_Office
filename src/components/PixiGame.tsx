@@ -1,14 +1,14 @@
 import * as PIXI from 'pixi.js';
-import { useApp } from '@pixi/react';
+import { Text, useApp } from '@pixi/react';
 import { Player, SelectElement } from './Player.tsx';
 import { useEffect, useRef, useState } from 'react';
 import { PixiStaticMap } from './PixiStaticMap.tsx';
 import PixiViewport from './PixiViewport.tsx';
 import { Viewport } from 'pixi-viewport';
 import { Id } from '../../convex/_generated/dataModel';
-import { useQuery } from 'convex/react';
+import { useMutation, useQuery } from 'convex/react';
+import { EMPLOYEES } from '../../data/office';
 import { api } from '../../convex/_generated/api.js';
-import { useSendInput } from '../hooks/sendInput.ts';
 import { toastOnError } from '../toasts.ts';
 import { DebugPath } from './DebugPath.tsx';
 import { PositionIndicator } from './PositionIndicator.tsx';
@@ -23,6 +23,8 @@ export const PixiGame = (props: {
   width: number;
   height: number;
   setSelectedElement: SelectElement;
+  ownerToken: string;
+  selectedEmployeeId?: string;
 }) => {
   // PIXI setup.
   const pixiApp = useApp();
@@ -33,11 +35,11 @@ export const PixiGame = (props: {
     (p) => p.human === humanTokenIdentifier,
   )?.id;
 
-  const moveTo = useSendInput(props.engineId, 'moveTo');
+  const moveEmployee = useMutation(api.office.moveEmployee);
 
   // Interaction for clicking on the world to navigate.
   const dragStart = useRef<{ screenX: number; screenY: number } | null>(null);
-  const onMapPointerDown = (e: any) => {
+  const onMapPointerDown = (e: PIXI.FederatedPointerEvent) => {
     // https://pixijs.download/dev/docs/PIXI.FederatedPointerEvent.html
     dragStart.current = { screenX: e.screenX, screenY: e.screenY };
   };
@@ -47,7 +49,7 @@ export const PixiGame = (props: {
     y: number;
     t: number;
   } | null>(null);
-  const onMapPointerUp = async (e: any) => {
+  const onMapPointerUp = async (e: PIXI.FederatedPointerEvent) => {
     if (dragStart.current) {
       const { screenX, screenY } = dragStart.current;
       dragStart.current = null;
@@ -58,7 +60,7 @@ export const PixiGame = (props: {
         return;
       }
     }
-    if (!humanPlayerId) {
+    if (!props.ownerToken || !props.selectedEmployeeId) {
       return;
     }
     const viewport = viewportRef.current;
@@ -77,7 +79,13 @@ export const PixiGame = (props: {
       y: Math.floor(gameSpaceTiles.y),
     };
     console.log(`Moving to ${JSON.stringify(roundedTiles)}`);
-    await toastOnError(moveTo({ playerId: humanPlayerId, destination: roundedTiles }));
+    await toastOnError(
+      moveEmployee({
+        ownerToken: props.ownerToken,
+        employeeId: props.selectedEmployeeId,
+        ...roundedTiles,
+      }),
+    );
   };
   const { width, height, tileDim } = props.game.worldMap;
   const players = [...props.game.world.players.values()];
@@ -103,9 +111,41 @@ export const PixiGame = (props: {
       viewportRef={viewportRef}
     >
       <PixiStaticMap
+        key={props.game.worldMap.tileSetUrl}
         map={props.game.worldMap}
         onpointerup={onMapPointerUp}
         onpointerdown={onMapPointerDown}
+      />
+      {EMPLOYEES.map((employee) => (
+        <Text
+          key={employee.id}
+          text={employee.name.toUpperCase()}
+          x={employee.desk.x * tileDim + tileDim / 2}
+          y={(employee.desk.y - 0.8) * tileDim}
+          anchor={0.5}
+          style={
+            new PIXI.TextStyle({
+              fontFamily: 'monospace',
+              fontSize: 12,
+              fill: 0xb3d4c6,
+              letterSpacing: 1,
+            })
+          }
+        />
+      ))}
+      <Text
+        text="CEO"
+        x={20.5 * tileDim}
+        y={13.3 * tileDim}
+        anchor={0.5}
+        style={new PIXI.TextStyle({ fontFamily: 'monospace', fontSize: 12, fill: 0xd2bb87 })}
+      />
+      <Text
+        text="MEETING AREA"
+        x={5 * tileDim}
+        y={13.5 * tileDim}
+        anchor={0.5}
+        style={new PIXI.TextStyle({ fontFamily: 'monospace', fontSize: 10, fill: 0x9ab4b9 })}
       />
       {players.map(
         (p) =>

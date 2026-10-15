@@ -6,6 +6,7 @@ import { internal } from '../_generated/api';
 import { sleep } from '../util/sleep';
 import { Id } from '../_generated/dataModel';
 import { ENGINE_ACTION_DURATION } from '../constants';
+import { denyOfficeWorld } from '../office/guard';
 
 export async function createEngine(ctx: MutationCtx) {
   const now = Date.now();
@@ -136,6 +137,7 @@ export const sendInput = mutation({
     args: v.any(),
   },
   handler: async (ctx, args) => {
+    await denyOfficeWorld(ctx.db,args.worldId);
     return await insertInput(ctx, args.worldId, args.name as any, args.args);
   },
 });

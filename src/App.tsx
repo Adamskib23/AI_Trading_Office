@@ -1,136 +1,249 @@
-import Game from './components/Game.tsx';
-
-import { ToastContainer } from 'react-toastify';
-import a16zImg from '../assets/a16z.png';
-import convexImg from '../assets/convex.svg';
-import starImg from '../assets/star.svg';
-import helpImg from '../assets/help.svg';
-// import { UserButton } from '@clerk/clerk-react';
-// import { Authenticated, Unauthenticated } from 'convex/react';
-// import LoginButton from './components/buttons/LoginButton.tsx';
-import { useState } from 'react';
-import ReactModal from 'react-modal';
-import MusicButton from './components/buttons/MusicButton.tsx';
-import Button from './components/buttons/Button.tsx';
-import InteractButton from './components/buttons/InteractButton.tsx';
-import FreezeButton from './components/FreezeButton.tsx';
-import { MAX_HUMAN_PLAYERS } from '../convex/constants.ts';
-import PoweredByConvex from './components/PoweredByConvex.tsx';
+import { useEffect, useState } from 'react';
+import { useMutation, useQuery } from 'convex/react';
+import { api } from '../convex/_generated/api';
+import Game from './components/Game';
+import './office.css';
 
 export default function Home() {
-  const [helpModalOpen, setHelpModalOpen] = useState(false);
+  const [clock, setClock] = useState(Date.now());
+  useEffect(() => {
+    const timer = setInterval(() => setClock(Date.now()), 30_000);
+    return () => clearInterval(timer);
+  }, []);
+  const office = useQuery(api.office.overview, { clock });
+  const [tab, setTab] = useState<'office' | 'markets' | 'activity'>('office');
+  const [ownerToken, setOwnerToken] = useState('');
+  const [credential, setCredential] = useState('');
+  const [loginOpen, setLoginOpen] = useState(false);
+  const [error, setError] = useState('');
+  const [busy, setBusy] = useState(false);
+  const authenticate = useMutation(api.office.authenticate);
+  const pause = useMutation(api.office.setPaused);
+  const select = useMutation(api.office.selectInstrument);
+  async function run(work: () => Promise<unknown>) {
+    setBusy(true);
+    setError('');
+    try {
+      await work();
+    } catch {
+      setError('Action failed. Check owner access and backend status.');
+    } finally {
+      setBusy(false);
+    }
+  }
   return (
-    <main className="relative flex min-h-screen flex-col items-center justify-between font-body game-background">
-      <PoweredByConvex />
-
-      <ReactModal
-        isOpen={helpModalOpen}
-        onRequestClose={() => setHelpModalOpen(false)}
-        style={modalStyles}
-        contentLabel="Help modal"
-        ariaHideApp={false}
-      >
-        <div className="font-body">
-          <h1 className="text-center text-6xl font-bold font-display game-title">Help</h1>
+    <main className="office-shell">
+      <header className="office-header">
+        <a className="office-brand" href="/ai-town/">
+          <span className="brand-mark">◈</span>
+          <span>
+            AI Trading Office<small>THE AUTONOMOUS OFFICE EXPERIMENT</small>
+          </span>
+        </a>
+        <div className="header-controls">
+          <span className="paper-badge">PAPER TRADING · SIMULATED FUNDS</span>
+          <button onClick={() => (ownerToken ? setOwnerToken('') : setLoginOpen(!loginOpen))}>
+            {ownerToken ? 'Lock controls' : 'CEO access'}
+          </button>
+        </div>
+      </header>
+      <section className="office-intro">
+        <div>
+          <span className="eyebrow">PHASE 1 / OFFICE FOUNDATIONS</span>
+          <h1>A workspace for five independent minds.</h1>
           <p>
-            Welcome to AI town. AI town supports both anonymous <i>spectators</i> and logged in{' '}
-            <i>interactivity</i>.
-          </p>
-          <h2 className="text-4xl mt-4">Spectating</h2>
-          <p>
-            Click and drag to move around the town, and scroll in and out to zoom. You can click on
-            an individual character to view its chat history.
-          </p>
-          <h2 className="text-4xl mt-4">Interactivity</h2>
-          <p>
-            If you log in, you can join the simulation and directly talk to different agents! After
-            logging in, click the "Interact" button, and your character will appear somewhere on the
-            map with a highlighted circle underneath you.
-          </p>
-          <p className="text-2xl mt-2">Controls:</p>
-          <p className="mt-4">Click to navigate around.</p>
-          <p className="mt-4">
-            To talk to an agent, click on them and then click "Start conversation," which will ask
-            them to start walking towards you. Once they're nearby, the conversation will start, and
-            you can speak to each other. You can leave at any time by closing the conversation pane
-            or moving away. They may propose a conversation to you - you'll see a button to accept
-            in the messages panel.
-          </p>
-          <p className="mt-4">
-            AI town only supports {MAX_HUMAN_PLAYERS} humans at a time. If you're idle for five
-            minutes, you'll be automatically removed from the simulation.
+            The team is in place. Trading and AI activity remain disabled while we build the
+            foundations.
           </p>
         </div>
-      </ReactModal>
-      {/*<div className="p-3 absolute top-0 right-0 z-10 text-2xl">
-        <Authenticated>
-          <UserButton afterSignOutUrl="/ai-town" />
-        </Authenticated>
-
-        <Unauthenticated>
-          <LoginButton />
-        </Unauthenticated>
-      </div> */}
-
-      <div className="w-full lg:h-screen min-h-screen relative isolate overflow-hidden lg:p-8 shadow-2xl flex flex-col justify-start">
-        <h1 className="mx-auto text-4xl p-3 sm:text-8xl lg:text-9xl font-bold font-display leading-none tracking-wide game-title w-full text-left sm:text-center sm:w-auto">
-          AI Town
-        </h1>
-
-        <div className="max-w-xs md:max-w-xl lg:max-w-none mx-auto my-4 text-center text-base sm:text-xl md:text-2xl text-white leading-tight shadow-solid">
-          A virtual town where AI characters live, chat and socialize.
-          {/* <Unauthenticated>
-            <div className="my-1.5 sm:my-0" />
-            Log in to join the town
-            <br className="block sm:hidden" /> and the conversation!
-          </Unauthenticated> */}
+        <span className="setup-badge">● SETUP · EXPERIMENT NOT STARTED</span>
+      </section>
+      {error && (
+        <p className="office-error" role="alert">
+          {error}
+        </p>
+      )}
+      {loginOpen && !ownerToken && (
+        <form
+          className="owner-login"
+          onSubmit={(event) => {
+            event.preventDefault();
+            void run(async () => {
+              await authenticate({ ownerToken: credential });
+              setOwnerToken(credential);
+              setCredential('');
+              setLoginOpen(false);
+            });
+          }}
+        >
+          <label htmlFor="owner-token">Local CEO access token</label>
+          <input
+            id="owner-token"
+            type="password"
+            autoComplete="off"
+            value={credential}
+            onChange={(e) => setCredential(e.target.value)}
+            placeholder="Paste your local owner token"
+          />
+          <button disabled={busy || !credential}>Unlock</button>
+          <small>
+            Generated locally in .office/owner-token.txt. Kept only in this page’s memory.
+          </small>
+        </form>
+      )}
+      <section className="office-stats" aria-label="Experiment status">
+        <article>
+          <span>EMPLOYEES</span>
+          <strong>
+            {office?.profiles.length ?? '—'}
+            <small> / 5</small>
+          </strong>
+          <p>Independent profiles · shared market access</p>
+        </article>
+        <article>
+          <span>SIMULATED STARTING CAPITAL</span>
+          <strong>
+            $1,000<small> / employee</small>
+          </strong>
+          <p>Planned funding · portfolios not created yet</p>
+        </article>
+        <article>
+          <span>MARKET UNIVERSE</span>
+          <strong>
+            {office?.instruments.filter((i) => i.selected).length ?? '—'}
+            <small> instruments</small>
+          </strong>
+          <p>All feed entitlements await verification</p>
+        </article>
+        <article>
+          <span>MODEL ACTIVITY</span>
+          <strong>Disabled</strong>
+          <p>No model calls or research tools enabled</p>
+        </article>
+      </section>
+      <nav className="office-tabs" aria-label="Office sections">
+        {(['office', 'markets', 'activity'] as const).map((item) => (
+          <button key={item} className={tab === item ? 'active' : ''} onClick={() => setTab(item)}>
+            {item === 'office'
+              ? 'The office'
+              : item === 'markets'
+                ? 'Market registry'
+                : 'Setup activity'}
+          </button>
+        ))}
+        <span>{ownerToken ? 'CEO controls unlocked' : 'Observation mode'}</span>
+        {ownerToken && office && (
+          <button
+            disabled={busy}
+            onClick={() => void run(() => pause({ ownerToken, paused: !office.setup.paused }))}
+          >
+            {office.setup.paused ? 'Resume office' : 'Pause office'}
+          </button>
+        )}
+      </nav>
+      {office === undefined ? (
+        <div className="office-empty">Connecting to the local office…</div>
+      ) : !office ? (
+        <div className="office-empty">
+          Office setup is not initialised. Run the local Phase 1 setup command.
         </div>
-
-        <Game />
-
-        <footer className="justify-end bottom-0 left-0 w-full flex items-center mt-4 gap-3 p-6 flex-wrap pointer-events-none">
-          <div className="flex gap-4 flex-grow pointer-events-none">
-            <FreezeButton />
-            <MusicButton />
-            <Button href="https://github.com/a16z-infra/ai-town" imgUrl={starImg}>
-              Star
-            </Button>
-            <InteractButton />
-            <Button imgUrl={helpImg} onClick={() => setHelpModalOpen(true)}>
-              Help
-            </Button>
-          </div>
-          <a href="https://a16z.com">
-            <img className="w-8 h-8 pointer-events-auto" src={a16zImg} alt="a16z" />
-          </a>
-          <a href="https://convex.dev/c/ai-town">
-            <img className="w-20 h-8 pointer-events-auto" src={convexImg} alt="Convex" />
-          </a>
-        </footer>
-        <ToastContainer position="bottom-right" autoClose={2000} closeOnClick theme="dark" />
-      </div>
+      ) : (
+        <>
+          {tab === 'office' && <Game ownerToken={ownerToken} officeProfiles={office.profiles} />}
+          {tab === 'markets' && (
+            <section className="registry-panel">
+              <div className="panel-heading">
+                <h2>A genuinely multi-asset universe</h2>
+                <p>
+                  Selection does not enable trading. Session labels describe calendar hours, not
+                  live quote availability.
+                </p>
+              </div>
+              <div className="registry-scroll">
+                <table>
+                  <thead>
+                    <tr>
+                      <th>Selected</th>
+                      <th>Instrument</th>
+                      <th>Exposure</th>
+                      <th>Venue</th>
+                      <th>Session reference</th>
+                      <th>Feed</th>
+                    </tr>
+                  </thead>
+                  <tbody>
+                    {office.instruments.map((i) => (
+                      <tr key={i.id}>
+                        <td>
+                          <input
+                            aria-label={`Select ${i.symbol}`}
+                            type="checkbox"
+                            checked={i.selected}
+                            disabled={!ownerToken || busy}
+                            onChange={(e) =>
+                              void run(() =>
+                                select({
+                                  ownerToken,
+                                  instrumentId: i.id,
+                                  selected: e.target.checked,
+                                }),
+                              )
+                            }
+                          />
+                        </td>
+                        <td>
+                          <strong>{i.symbol}</strong>
+                          <small>{i.assetClass === 'fx' ? 'Cash conversion' : i.assetClass}</small>
+                        </td>
+                        <td>{i.exposure.replaceAll('_', ' ')}</td>
+                        <td>{i.venue.replaceAll('_', ' ')}</td>
+                        <td>
+                          <span className={`session-state ${i.session.state.toLowerCase()}`}>
+                            {i.session.state}
+                          </span>
+                          <small>{i.session.reason}</small>
+                        </td>
+                        <td>
+                          <span className="feed-unverified">Unverified</span>
+                        </td>
+                      </tr>
+                    ))}
+                  </tbody>
+                </table>
+              </div>
+              <p className="registry-note">
+                New York sessions, 2026–2027 calendar. FX provider hours remain unverified. Crypto
+                venue health is not connected. All employees share the selected universe.
+              </p>
+            </section>
+          )}
+          {tab === 'activity' && (
+            <section className="registry-panel">
+              <div className="panel-heading">
+                <h2>Setup activity</h2>
+                <p>
+                  Persisted owner actions. Messages and financial events arrive in later phases.
+                </p>
+              </div>
+              <ul className="audit-list">
+                {office.audit.map((event) => (
+                  <li key={event._id}>
+                    <time>{new Date(event.occurredAt).toLocaleString()}</time>
+                    <strong>{event.action.replaceAll('_', ' ')}</strong>
+                    <span>
+                      {event.employeeId ?? event.instrumentId ?? 'Office'} {event.value ?? ''}
+                    </span>
+                  </li>
+                ))}
+              </ul>
+            </section>
+          )}
+        </>
+      )}
+      <footer className="office-footer">
+        <span>Built on AI Town · React / PixiJS / Convex</span>
+        <span>Phase 1 · No live trading connection · Official run locked</span>
+      </footer>
     </main>
   );
 }
-
-const modalStyles = {
-  overlay: {
-    backgroundColor: 'rgb(0, 0, 0, 75%)',
-    zIndex: 12,
-  },
-  content: {
-    top: '50%',
-    left: '50%',
-    right: 'auto',
-    bottom: 'auto',
-    marginRight: '-50%',
-    transform: 'translate(-50%, -50%)',
-    maxWidth: '50%',
-
-    border: '10px solid rgb(23, 20, 33)',
-    borderRadius: '0',
-    background: 'rgb(35, 38, 58)',
-    color: 'white',
-    fontFamily: '"Upheaval Pro", "sans-serif"',
-  },
-};
