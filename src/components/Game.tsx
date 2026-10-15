@@ -139,7 +139,11 @@ https://github.com/michalochman/react-pixi-fiber/issues/145#issuecomment-5315492
         </div>
       </div>
       {terminalOpen && (
-        <MarketTerminal clock={terminalClock} onClose={() => setTerminalOpen(false)} />
+        <MarketTerminal
+          clock={terminalClock}
+          ownerToken={ownerToken}
+          onClose={() => setTerminalOpen(false)}
+        />
       )}
     </>
   );

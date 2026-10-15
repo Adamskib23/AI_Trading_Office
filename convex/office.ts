@@ -135,6 +135,23 @@ export const authenticate = mutation({
   },
 });
 
+export const setTerminalPrices = mutation({
+  args: { ownerToken: v.string(), enabled: v.boolean() },
+  handler: async (ctx, args) => {
+    assertOwner(args.ownerToken);
+    const office = await ctx.db.query('officeSetup').first();
+    if (!office) throw new Error('Office not initialised');
+    if ((office.terminalPricesEnabled ?? false) === args.enabled) return;
+    await ctx.db.patch(office._id, { terminalPricesEnabled: args.enabled });
+    await ctx.db.insert('officeAudit', {
+      actor: 'owner',
+      action: 'TERMINAL_PRICE_DISPLAY',
+      value: String(args.enabled),
+      occurredAt: Date.now(),
+    });
+  },
+});
+
 export const setPaused = mutation({
   args: { ownerToken: v.string(), paused: v.boolean() },
   handler: async (ctx, args) => {

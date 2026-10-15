@@ -1,5 +1,12 @@
 import { v } from 'convex/values';
-import { action, internalAction, internalMutation, mutation, query } from './_generated/server';
+import {
+  action,
+  internalAction,
+  internalMutation,
+  mutation,
+  query,
+  QueryCtx,
+} from './_generated/server';
 import { internal } from './_generated/api';
 import { assertOwner } from './office/access';
 import { INSTRUMENTS } from './office/registry';
@@ -259,40 +266,71 @@ export const review = mutation({
 });
 export const status = query({
   args: { clock: v.number() },
+  handler: (ctx) => readFeedStatus(ctx),
+});
+
+// The terminal receives timing/status metadata without price fields by default.
+// The existing server-side feed cache and paper broker remain independent.
+export const terminal = query({
+  args: { clock: v.number() },
   handler: async (ctx) => {
-    const rows = [];
-    for (const instrument of INSTRUMENTS) {
-      const quote = await ctx.db
-        .query('marketQuotes')
-        .withIndex('scopeInstrument', (q) =>
-          q.eq('scope', 'provider').eq('instrumentId', instrument.id),
-        )
-        .order('desc')
-        .first();
-      const capability = await ctx.db
-        .query('marketCapabilities')
-        .withIndex('scopeInstrument', (q) =>
-          q.eq('scope', 'provider').eq('instrumentId', instrument.id),
-        )
-        .unique();
-      const event = await ctx.db
-        .query('feedEvents')
-        .withIndex('instrument', (q) => q.eq('instrumentId', instrument.id))
-        .order('desc')
-        .first();
-      rows.push({
-        instrumentId: instrument.id,
-        symbol: instrument.symbol,
-        provider: instrument.assetClass === 'crypto' ? 'kraken' : 'twelve',
-        configured: instrument.assetClass === 'crypto' || !!process.env.TWELVE_DATA_API_KEY,
-        quote,
-        capability,
-        event,
-      });
-    }
-    return { rows, quota: await ctx.db.query('providerQuota').collect() };
+    const setup = await ctx.db.query('officeSetup').first();
+    const pricesEnabled = setup?.terminalPricesEnabled ?? false;
+    const data = await readFeedStatus(ctx);
+    return {
+      pricesEnabled,
+      rows: data.rows.map((row) => ({
+        instrumentId: row.instrumentId,
+        symbol: row.symbol,
+        provider: row.provider,
+        configured: row.configured,
+        event: row.event,
+        quote: row.quote
+          ? {
+              sourceTimestamp: row.quote.sourceTimestamp,
+              currency: row.quote.currency,
+              sourceMode: row.quote.sourceMode,
+              ...(pricesEnabled ? { last: row.quote.last } : {}),
+            }
+          : null,
+      })),
+    };
   },
 });
+
+async function readFeedStatus(ctx: QueryCtx) {
+  const rows = [];
+  for (const instrument of INSTRUMENTS) {
+    const quote = await ctx.db
+      .query('marketQuotes')
+      .withIndex('scopeInstrument', (q) =>
+        q.eq('scope', 'provider').eq('instrumentId', instrument.id),
+      )
+      .order('desc')
+      .first();
+    const capability = await ctx.db
+      .query('marketCapabilities')
+      .withIndex('scopeInstrument', (q) =>
+        q.eq('scope', 'provider').eq('instrumentId', instrument.id),
+      )
+      .unique();
+    const event = await ctx.db
+      .query('feedEvents')
+      .withIndex('instrument', (q) => q.eq('instrumentId', instrument.id))
+      .order('desc')
+      .first();
+    rows.push({
+      instrumentId: instrument.id,
+      symbol: instrument.symbol,
+      provider: instrument.assetClass === 'crypto' ? 'kraken' : 'twelve',
+      configured: instrument.assetClass === 'crypto' || !!process.env.TWELVE_DATA_API_KEY,
+      quote,
+      capability,
+      event,
+    });
+  }
+  return { rows, quota: await ctx.db.query('providerQuota').collect() };
+}
 
 // Durable shared polling: independent of visual-world heartbeat; enabled only by active provider TEST runs.
 export const due = internalMutation({

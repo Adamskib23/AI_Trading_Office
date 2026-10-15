@@ -1,11 +1,34 @@
 import { useEffect, useRef, useState } from 'react';
-import { useQuery } from 'convex/react';
+import { useQuery, useMutation } from 'convex/react';
 import { api } from '../../convex/_generated/api';
 
-export default function MarketTerminal({ clock, onClose }: { clock: number; onClose: () => void }) {
+export default function MarketTerminal({
+  clock,
+  onClose,
+  ownerToken,
+}: {
+  clock: number;
+  onClose: () => void;
+  ownerToken: string;
+}) {
   const dialog = useRef<HTMLDialogElement>(null);
   const [now, setNow] = useState(clock);
-  const feeds = useQuery(api.marketData.status, { clock: now });
+  const feeds = useQuery(api.marketData.terminal, { clock: now });
+  const setPrices = useMutation(api.office.setTerminalPrices);
+  const [busy, setBusy] = useState(false);
+  const [error, setError] = useState('');
+  async function togglePrices() {
+    if (!feeds) return;
+    setBusy(true);
+    setError('');
+    try {
+      await setPrices({ ownerToken, enabled: !feeds.pricesEnabled });
+    } catch {
+      setError('Display setting could not be changed. Check CEO access.');
+    } finally {
+      setBusy(false);
+    }
+  }
   useEffect(() => {
     dialog.current?.showModal();
     const timer = setInterval(() => setNow(Date.now()), 30_000);
@@ -31,12 +54,25 @@ export default function MarketTerminal({ clock, onClose }: { clock: number; onCl
       <p>
         Prices may be stale, delayed or unverified. Opening this screen does not poll providers.
       </p>
+      <label>
+        <input
+          type="checkbox"
+          checked={feeds?.pricesEnabled ?? false}
+          disabled={!ownerToken || busy || !feeds}
+          onChange={() => void togglePrices()}
+        />{' '}
+        Show terminal prices
+      </label>
+      {!feeds?.pricesEnabled && (
+        <p role="status">Price display is off. Feed health and timestamps remain visible.</p>
+      )}
+      {error && <p role="alert">{error}</p>}
       <div className="terminal-table" tabIndex={0} role="region" aria-label="Market instruments">
         <table>
           <thead>
             <tr>
               <th>Instrument</th>
-              <th>Last</th>
+              {feeds?.pricesEnabled && <th>Last</th>}
               <th>Currency</th>
               <th>Source time (UTC)</th>
               <th>Freshness</th>
@@ -59,7 +95,7 @@ export default function MarketTerminal({ clock, onClose }: { clock: number; onCl
               return (
                 <tr key={row.instrumentId}>
                   <th scope="row">{row.symbol}</th>
-                  <td className="terminal-price">{quote?.last ?? '—'}</td>
+                  {feeds.pricesEnabled && <td className="terminal-price">{quote?.last ?? '—'}</td>}
                   <td>{quote?.currency ?? '—'}</td>
                   <td>
                     {quote

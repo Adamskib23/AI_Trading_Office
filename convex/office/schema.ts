@@ -6,6 +6,7 @@ export const officeTables = {
     phase: v.literal('SETUP'),
     layoutVersion: v.number(),
     paused: v.boolean(),
+    terminalPricesEnabled: v.optional(v.boolean()),
     createdAt: v.number(),
   }).index('worldId', ['worldId']),
   employeeProfiles: defineTable({

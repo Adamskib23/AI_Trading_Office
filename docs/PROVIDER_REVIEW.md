@@ -8,6 +8,12 @@ The initial FX/crypto failures were caused by the local UTC clock being approxim
 
 ## Rights and session evidence still needed
 
+### Owner-reported temporary permission — 15 October 2026
+
+The owner reports that Twelve Data said the current paper use is okay for now and that an upgrade can follow later. The owner clarified that Kraken has not been contacted and requested terminal display be switched off and made toggleable. Record Twelve Data execution rights for the current internal paper evaluation on that owner-reported basis, not as a directly inspected provider response or a permanent/publication grant. Kraken rights remain unreviewed. Terminal prices default off; only authenticated CEO controls can change the persisted setting, with an audit event. The terminal's dedicated query omits price fields while off, retaining timing/health metadata. No public display, publication, subscription upgrade or real-money trading is authorised.
+
+The corresponding Twelve Data reviews preserve existing unverified session/source/corporate-action fields. Those are separate technical checks and remain unchanged. Turning terminal prices on later is a display setting, not evidence that a provider granted display or publication rights; review the relevant terms before using it.
+
 | Concern | Current evidence | Required before recording a positive review |
 | --- | --- | --- |
 | Twelve Data internal simulation | [Basic pricing](https://twelvedata.com/pricing) lists internal non-display usage | Confirm the actual account tier and permission for this specific five-agent, paper-only evaluation, retention and audit history |
@@ -18,7 +24,7 @@ The initial FX/crypto failures were caused by the local UTC clock being approxim
 | Securities corporate actions | The engine blocks expired/absent reviews and affected instruments | Dated authoritative issuer/exchange checks covering each enabled symbol and the exact upcoming test window, at most seven days per review; no blanket “clear” attestation |
 | Kraken use / publication | [Public API](https://docs.kraken.com/api-reference/market-data/get-recent-trades) and [global terms](https://www.kraken.com/legal/global-terms) reviewed; public connectivity confirmed | Applicable permission for internal simulation, retention, local display and documentary publication; public access is not itself a redistribution grant |
 
-No positive rights/session/corporate-action attestations were recorded during these probes. No fees or subscription changes are authorised by this review. The approved architecture and market scope are unchanged.
+The original retrieval probes recorded no positive rights/session/corporate-action attestations. The later owner-reported Twelve Data paper-use permission above supports a scoped execution-rights update only. No fees or subscription changes are authorised by this review. The approved architecture and market scope are unchanged.
 
 ## Draft enquiry for Twelve Data (prepared, not sent)
 

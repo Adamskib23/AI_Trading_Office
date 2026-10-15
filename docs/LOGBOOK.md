@@ -1,5 +1,11 @@
 # Development logbook
 
+## 15 October 2026 — temporary Twelve Data paper permission; terminal prices off
+
+Owner clarified the permission was from Twelve Data, that Kraken had not been contacted, and requested terminal display be switchable and off for now. Recorded owner-reported temporary internal paper rights for all 11 Twelve Data instruments through the existing authenticated review endpoint, preserving every session/source/corporate-action value. Kraken reviews were unchanged. No provider requests, paper orders or subscription changes were made for that update.
+
+Added a persisted CEO-only terminal-price toggle, default off, with audit events and a dedicated query that omits price fields while disabled. Timing/health metadata remains visible and financial data ingestion is independent of presentation. No publication or real-money permission is inferred.
+
 ## 15 October 2026 — clock repaired; all symbols retrieved; Phase 2 still active
 
 Owner synchronized Windows after three external clocks (Kraken, Microsoft and Cloudflare) agreed approximately one hour ahead of local UTC and Windows Time was found stopped. The earlier independent-clock check followed the same local clock and could not establish a Kraken fault. After synchronization, observed differences were under one second. EUR/USD and BTC/ETH/SOL immediately passed timestamp and closed-candle checks. All eight US symbols plus all three FX pairs and all three crypto pairs now have retrieval evidence. US quotes are previous closes, not open-session execution proof. No source timestamp was corrected in code.

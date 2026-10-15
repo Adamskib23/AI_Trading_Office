@@ -1,5 +1,11 @@
 # Project changelog
 
+## 15 October 2026 — owner-scoped paper permission and display control
+
+- Recorded the owner's temporary Twelve Data internal paper-use permission for its 11 instruments; preserved technical gates and Kraken's unreviewed status.
+- Terminal prices default off, with an audited, persisted CEO-only toggle and backend omission of disabled price fields. Feed timing/health remains visible.
+- Added a local integration check covering authorization, omitted prices and cross-client persistence; it always restores the off setting.
+
 ## 15 October 2026 — terminal and Phase 2 validation hardening (pre-trial)
 
 - Clickable animated office market screen and accessible read-only terminal for all 14 symbols, with source clocks and stale/missing/mode labels. No new framework or implicit provider polling.
