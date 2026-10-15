@@ -1,5 +1,9 @@
 # Development logbook
 
+## 15 October 2026 — GitHub fork
+
+Owner selected Adamskib23. Verified the stored Git Credential Manager identity without displaying credentials, created Adamskib23/AI_Trading_Office as an upstream fork, and added it as origin. Published phase-1-office for review; upstream remains separately configured. No deployment, model calls, trading, merge into main or Phase 2 implementation was performed.
+
 ## 15 October 2026 — Phase 1 approved
 
 Owner confirmed AI Town works and authorised the fork/Phase 1. Created local phase-1-office branch; preserved upstream as upstream remote. Built a separate persistent five-avatar office, original SVG furniture, CEO setup UI, owner-token controls, legacy write guards, 14-instrument registry, reference calendars and model-call lock. Original world/history retained. Verified unit, backend integration and browser checks; fixed Pixi teardown and resize bugs found during browser testing. No inference, quotes integration, trading or research executed. GitHub fork awaits owner destination and connected GitHub account. See PHASE_1.md for evidence and limitations.

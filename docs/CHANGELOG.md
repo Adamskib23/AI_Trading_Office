@@ -7,7 +7,7 @@
 - Server-validated local owner access, office-specific legacy mutation guards and an explicit inference lock.
 - Fourteen proposed multi-asset instruments, all unverified; versioned US session calendar and conservative FX/crypto reference states.
 - Windows local launcher; calendar/access/reachability/inference unit checks, local backend checks and browser verification.
-- No market integration, broker, inference, research, paper orders or official run started. Owner GitHub fork still awaits connected account/destination.
+- No market integration, broker, inference, research, paper orders or official run started. Owner GitHub fork created at Adamskib23/AI_Trading_Office; Phase 1 is published on phase-1-office for review.
 
 ## 14 October 2026 — Phase 0 baseline (pre-trial)
 

@@ -44,10 +44,10 @@ To rotate the token: generate a new secure random local token and update `OFFICE
 
 ## Git / remote status
 
-Local development branch: `phase-1-office`, derived from upstream `8e05997f2409275669c8344b84a51692e83f3f33`. Upstream remote renamed from `origin` to `upstream` to avoid confusing upstream with the owner's fork. No owner GitHub destination/account connection has been supplied yet; no GitHub fork, push or remote publication is claimed. Connect GitHub and identify the target account/organisation, then create the upstream fork and add it as origin. No existing user work was discarded.
+Local development branch: `phase-1-office`, derived from upstream `8e05997f2409275669c8344b84a51692e83f3f33`. Owner confirmed `Adamskib23`. Created [Adamskib23/AI_Trading_Office](https://github.com/Adamskib23/AI_Trading_Office) as a GitHub fork of a16z-infra/ai-town using the existing Git Credential Manager sign-in. `origin` points to the owner's fork; `upstream` retains the original repository. Phase 1 is published on `phase-1-office` for review; main remains the upstream baseline. No existing user work was discarded.
 
 ## Next checkpoint
 
-Review the office visually and settle the remote fork. Review local owner access and provider-rights/account blockers before public deployment. Phase 2 requires separate owner approval, then proceeds to verified feeds and deterministic ledger/paper execution with scripted traders. No inference, web research or trading was run during Phase 1.
+Review the office visually and the published Phase 1 branch. Review local owner access and provider-rights/account blockers before public deployment. Phase 2 requires separate owner approval, then proceeds to verified feeds and deterministic ledger/paper execution with scripted traders. No inference, web research or trading was run during Phase 1.
 
 Calendar sources reviewed 15 October: [NYSE hours/holidays](https://www.nyse.com/trade/hours-calendars), [OANDA reference trading hours](https://www.oanda.com/us-en/trading/hours-of-operation/). FX provider binding remains unverified.
